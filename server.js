@@ -2,8 +2,13 @@
 const http=require('http'),fs=require('fs'),path=require('path');
 const WebSocket=require('ws');
 
-/* ---- constantes (espelho do index.html) ---- */
+/* ---- constantes (espelho do index.html; mantenha iguais!) ---- */
 const TICK=50, LAPS=3, E=0.35;
+
+/* PERDA_BORDA — fator de conservação da velocidade ao raspar no muro
+   0.10 = conserva 10%, perde 90%. Ajuste aqui para afinar. */
+const PERDA_BORDA = 0.10;
+
 const CARS=[
  {max:640,acc:380,grip:5.5,brk:420,turn:2.6,mass:1.00,r:15},
  {max:560,acc:420,grip:7.0,brk:520,turn:2.9,mass:1.05,r:15},
@@ -20,33 +25,87 @@ const TRACKS=[
   cps:[[800,150],[1550,500],[900,850],[500,850],[50,500]],
   atalho:{w:30,p:[[900,850],[700,800],[500,850]]}},
 ];
+
+/* ---- física (idêntica ao cliente) ---- */
 function stepCar(c,inp,dt,sup){
   const C=CARS[c.car];
   const fX=Math.cos(c.h),fY=Math.sin(c.h),rX=-fY,rY=fX;
   let vf=c.vx*fX+c.vy*fY, vl=c.vx*rX+c.vy*rY;
   if(inp.th>0)vf+=C.acc*inp.th*dt;
   if(inp.br>0)vf-=C.brk*inp.br*dt;
-  vf-=vf*(0.4+sup.drag)*dt;  // arrasto: base 0.4 + extra fora da pista
+  vf-=vf*(0.4+sup.drag)*dt;
   vl*=Math.max(0,1-C.grip*sup.grip*dt);
   vf=Math.max(-C.max*0.35,Math.min(C.max*sup.cap,vf));
-  const eff=Math.min(1,Math.abs(vf)/60)*(vf<0?-1:1);  // limiar reduzido: 60
+  const eff=Math.min(1,Math.abs(vf)/60)*(vf<0?-1:1);
   c.h+=inp.st*C.turn*eff*dt;
   const nX=Math.cos(c.h),nY=Math.sin(c.h);
   c.vx=nX*vf+(-nY)*vl; c.vy=nY*vf+nX*vl;
   c.x+=c.vx*dt; c.y+=c.vy*dt;
 }
-function distSeg(px,py,ax,ay,bx,by){const dx=bx-ax,dy=by-ay,L=dx*dx+dy*dy||1;
-  let t=((px-ax)*dx+(py-ay)*dy)/L;t=Math.max(0,Math.min(1,t));
-  return Math.hypot(px-(ax+dx*t),py-(ay+dy*t));}
-function surfaceAt(ti,x,y){
-  const T=TRACKS[ti];let d=1e9;
-  for(let i=0;i<T.p.length;i++){const a=T.p[i],b=T.p[(i+1)%T.p.length];
-    d=Math.min(d,distSeg(x,y,a[0],a[1],b[0],b[1]));}
-  if(d<=T.w/2)return{grip:1,cap:1,drag:0,onTrack:true};
-  if(T.atalho){let ds=1e9;const S=T.atalho.p;
-    for(let i=0;i<S.length-1;i++)ds=Math.min(ds,distSeg(x,y,S[i][0],S[i][1],S[i+1][0],S[i+1][1]));
-    if(ds<=T.atalho.w/2)return{grip:.45,cap:1,drag:0,onTrack:true};}
-  return{grip:.4,cap:.3,drag:3.5,onTrack:false};  // FORA DA PISTA: punição severa
+
+/* ---- primitivas geométricas ---- */
+function closestOnSeg(px,py,ax,ay,bx,by){
+  const dx=bx-ax, dy=by-ay, L=dx*dx+dy*dy||1;
+  let t=((px-ax)*dx+(py-ay)*dy)/L;
+  t=Math.max(0,Math.min(1,t));
+  const x=ax+dx*t, y=ay+dy*t;
+  return {dist:Math.hypot(px-x,py-y), x, y};
+}
+function closestOnPath(px, py, path, closed){
+  let best = {dist: Infinity, x: px, y: py};
+  const n = path.length;
+  for (let i = 0; i < n; i++){
+    if (!closed && i === n-1) break;
+    const a = path[i], b = path[(i+1) % n];
+    const r = closestOnSeg(px, py, a[0], a[1], b[0], b[1]);
+    if (r.dist < best.dist) best = r;
+  }
+  return best;
+}
+function distToPath(px, py, path, closed){ return closestOnPath(px, py, path, closed).dist; }
+
+function surfaceAt(ti, x, y){
+  const T = TRACKS[ti];
+  if (distToPath(x, y, T.p, true) <= T.w/2) return {grip:1, cap:1, drag:0};
+  if (T.atalho && distToPath(x, y, T.atalho.p, false) <= T.atalho.w/2)
+    return {grip:.45, cap:1, drag:0};
+  return {grip:.4, cap:.3, drag:3};
+}
+
+/* colisão com muro invisível */
+function resolveWallCollision(car, ti){
+  const T = TRACKS[ti];
+  const r = CARS[car.car].r;
+
+  const dMain  = distToPath(car.x, car.y, T.p, true);
+  const dShort = T.atalho ? distToPath(car.x, car.y, T.atalho.p, false) : Infinity;
+  const inMain  = dMain  <= T.w/2;
+  const inShort = T.atalho && dShort <= T.atalho.w/2;
+
+  if (inMain || inShort) return null;
+
+  let path, closed, w;
+  if (!T.atalho || dMain <= dShort){ path = T.p; closed = true; w = T.w; }
+  else                              { path = T.atalho.p; closed = false; w = T.atalho.w; }
+
+  const cl = closestOnPath(car.x, car.y, path, closed);
+  let dx = car.x - cl.x, dy = car.y - cl.y;
+  let d = Math.hypot(dx, dy);
+  if (d < 1e-4){ dx = 1; dy = 0; d = 1; }
+  const nx = dx/d, ny = dy/d;
+
+  car.x = cl.x + nx * (w/2 - r);
+  car.y = cl.y + ny * (w/2 - r);
+
+  const vDotN = car.vx * nx + car.vy * ny;
+  if (vDotN > 0){
+    car.vx -= vDotN * nx;
+    car.vy -= vDotN * ny;
+  }
+  car.vx *= PERDA_BORDA;
+  car.vy *= PERDA_BORDA;
+
+  return {hit:true, x:cl.x + nx*(w/2), y:cl.y + ny*(w/2)};
 }
 
 /* ---- salas ---- */
@@ -83,8 +142,10 @@ setInterval(()=>{
     if(r.phase==='lobby')continue;
     if(r.phase==='countdown'&&now>=r.countEnd){r.phase='race';r.raceStart=now;}
     if(r.phase==='race'||r.phase==='finished'){
-      for(const p of r.players)
+      for(const p of r.players){
         stepCar(p,p.input,TICK/1000,surfaceAt(r.track,p.x,p.y));
+        resolveWallCollision(p, r.track);   // muro invisível
+      }
       for(let i=0;i<r.players.length;i++)for(let j=i+1;j<r.players.length;j++){
         const a=r.players[i],b=r.players[j];
         const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),R=CARS[a.car].r+CARS[b.car].r;
@@ -138,7 +199,7 @@ const wss=new WebSocket.Server({server:srv});
 wss.on('connection',ws=>{
   const p={ws,id:Math.random().toString(36).slice(2,8),name:'',car:1,room:null,
     host:false,connected:true,offline:false,x:0,y:0,h:0,vx:0,vy:0,
-    lap:1,nextCp:1,fin:false,finT:0,input:{th:0,br:0,st:0},lastSeq:0};
+    lap:1,nextCp=1,fin:false,finT:0,input:{th:0,br:0,st:0},lastSeq:0};
   ws.on('message',d=>{
     const m=JSON.parse(d);
     if(m.t==='create'){p.name=String(m.name).slice(0,12);newRoom(p);sendRoom(p);}

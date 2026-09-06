@@ -6,19 +6,11 @@
 <title>Turbo Sala — Corrida Multiplayer</title>
 <style>
   html,body{margin:0;height:100%;overflow:hidden;background:#12141c;font-family:system-ui,Arial,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none}
-  
-  /* ========== CANVAS ========== */
   #cvWrap{position:fixed;inset:0;z-index:1}
   #cv{display:block;width:100%;height:100%}
   #cvErr{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#8c2f2f;color:#fff;padding:20px;border-radius:12px;font-size:14px;z-index:99;display:none;max-width:90vw}
-  
-  /* ========== TELAS ========== */
   .tela{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(10,12,18,.92);z-index:20;padding:10px}
-  .card{
-    background:#1c2030;border:1px solid #2c3350;border-radius:14px;
-    padding:14px;width:min(94vw,520px);color:#e8ecff;
-    max-height:92dvh;overflow-y:auto;display:flex;flex-direction:column;gap:10px;
-  }
+  .card{background:#1c2030;border:1px solid #2c3350;border-radius:14px;padding:14px;width:min(94vw,520px);color:#e8ecff;max-height:92dvh;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
   .card h1{font-size:clamp(14px,4vw,20px);margin:0;text-align:center}
   .card h2{font-size:clamp(10px,3vw,12px);margin:0;color:#9fb0ff;text-transform:uppercase;letter-spacing:.05em}
   input,select{width:100%;box-sizing:border-box;padding:8px;border-radius:8px;border:1px solid #3a4270;background:#141828;color:#e8ecff;font-size:clamp(12px,3.5vw,14px)}
@@ -28,34 +20,14 @@
   .btn.copy{background:#2ecc71;padding:6px 12px;font-size:clamp(10px,3vw,12px);white-space:nowrap;min-height:36px}
   .btn.copy.ok{background:#27ae60}
   .linha{display:flex;gap:8px}.linha>*{flex:1}
-  
-  /* ========== LOBBY ========== */
   #mLobby .card{max-height:95dvh;gap:8px}
-  .lb-head{
-    position:sticky;top:-14px;background:#1c2030;margin:-14px -14px 0;padding:12px 14px;
-    border-bottom:1px solid #2c3350;z-index:2;
-  }
-  .lb-code-box{
-    display:flex;align-items:center;gap:8px;
-    background:#141828;border:2px solid #4c6fff;border-radius:10px;padding:10px 12px;margin-top:6px;
-  }
-  .lb-code-box .code{
-    flex:1;font-size:clamp(18px,7vw,28px);font-weight:900;letter-spacing:.15em;color:#ffd54c;
-    font-family:'Courier New',monospace;text-align:center;
-  }
+  .lb-head{position:sticky;top:-14px;background:#1c2030;margin:-14px -14px 0;padding:12px 14px;border-bottom:1px solid #2c3350;z-index:2}
+  .lb-code-box{display:flex;align-items:center;gap:8px;background:#141828;border:2px solid #4c6fff;border-radius:10px;padding:10px 12px;margin-top:6px}
+  .lb-code-box .code{flex:1;font-size:clamp(18px,7vw,28px);font-weight:900;letter-spacing:.15em;color:#ffd54c;font-family:'Courier New',monospace;text-align:center}
   .lb-code-box .btn.copy{flex:0 0 auto}
-  
   .lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  @media(max-height:420px){
-    .lb-grid{grid-template-columns:1fr 1fr;gap:8px}
-    .card{padding:10px;gap:6px}
-    .lb-head{margin:-10px -10px 0;padding:8px 10px}
-    .lb-code-box{padding:6px 10px;margin-top:4px}
-  }
-  @media(max-height:360px){
-    .lb-code-box .code{font-size:18px}
-  }
-  
+  @media(max-height:420px){.lb-grid{gap:8px}.card{padding:10px;gap:6px}.lb-head{margin:-10px -10px 0;padding:8px 10px}.lb-code-box{padding:6px 10px;margin-top:4px}}
+  @media(max-height:360px){.lb-code-box .code{font-size:18px}}
   .jog{display:flex;justify-content:space-between;padding:5px 8px;background:#141828;border-radius:8px;font-size:clamp(11px,3vw,13px)}
   .jog-list{display:flex;flex-direction:column;gap:4px;max-height:120px;overflow-y:auto}
   .carsel{display:flex;gap:4px;flex-wrap:wrap}
@@ -66,8 +38,6 @@
   .trksel button.on{border-color:#4c6fff}
   .lb-col{display:flex;flex-direction:column;gap:6px;min-width:0}
   .lb-col h2{margin:0}
-  
-  /* ========== HUD E CONTROLES ========== */
   #hud{position:fixed;top:clamp(6px,2vw,10px);left:clamp(8px,2.5vw,12px);color:#fff;font-size:clamp(12px,3.5vw,14px);z-index:5;text-shadow:0 1px 3px #000;pointer-events:none}
   #hud b{font-size:clamp(14px,4vw,18px)}
   #btnCtl{position:fixed;top:clamp(6px,2vw,10px);right:clamp(8px,2.5vw,12px);z-index:6;background:#2a3050cc;border:none;color:#fff;border-radius:8px;padding:6px 10px;font-size:clamp(11px,3vw,14px);cursor:pointer;min-height:36px}
@@ -81,23 +51,15 @@
   #count{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(60px,20vw,90px);font-weight:900;color:#ffd54c;text-shadow:0 2px 12px #000;z-index:8;pointer-events:none}
   #toast{position:fixed;top:clamp(50px,15vw,70px);left:50%;transform:translateX(-50%);background:#0009;color:#fff;padding:8px 14px;border-radius:10px;z-index:30;font-size:clamp(11px,3vw,13px);display:none}
   .off{opacity:.45}
-  
-  /* ========== RESULTADO ========== */
   #res table{width:100%;font-size:clamp(11px,3vw,13px);border-collapse:collapse}
   #res td{padding:4px;border-bottom:1px solid #2c3350}
-  
-  /* ========== TELA DE ORIENTAÇÃO ========== */
   #rotScreen{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:100;display:none;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-size:clamp(14px,4vw,18px);text-align:center;padding:20px}
   #rotScreen .icon{font-size:clamp(50px,15vw,80px);margin-bottom:20px;animation:rotate 2s infinite}
   @keyframes rotate{0%,100%{transform:rotate(0deg)}50%{transform:rotate(90deg)}}
 </style>
 </head>
 <body>
-
-<div id="cvWrap">
-  <canvas id="cv"></canvas>
-  <div id="cvErr"></div>
-</div>
+<div id="cvWrap"><canvas id="cv"></canvas><div id="cvErr"></div></div>
 
 <div id="hud" style="display:none">
   <b id="hPos">–</b> <span id="hLap"></span><br><span id="hVel"></span> <span id="hTmp"></span>
@@ -112,12 +74,8 @@
 <div id="count" style="display:none"></div>
 <div id="toast"></div>
 
-<div id="rotScreen">
-  <div class="icon">📱</div>
-  <div>Gire o aparelho para a horizontal</div>
-</div>
+<div id="rotScreen"><div class="icon">📱</div><div>Gire o aparelho para a horizontal</div></div>
 
-<!-- MENU INICIAL -->
 <div class="tela" id="mMenu"><div class="card">
   <h1>🏁 Turbo Sala</h1>
   <input id="inNome" placeholder="Seu nome" maxlength="12">
@@ -128,7 +86,6 @@
   </div>
 </div></div>
 
-<!-- LOBBY -->
 <div class="tela" id="mLobby" style="display:none"><div class="card">
   <div class="lb-head">
     <h1 style="font-size:clamp(12px,3.5vw,16px);margin:0">Sala criada!</h1>
@@ -137,7 +94,6 @@
       <button class="btn copy" id="bCopy">📋 Copiar</button>
     </div>
   </div>
-  
   <div class="lb-grid">
     <div class="lb-col">
       <h2>Jogadores</h2>
@@ -153,11 +109,9 @@
       </div>
     </div>
   </div>
-  
   <p id="lbDica" style="font-size:clamp(9px,2.5vw,11px);color:#8fa0d0;margin:0;text-align:center"></p>
 </div></div>
 
-<!-- CALIBRAGEM -->
 <div class="tela" id="mCalib" style="display:none"><div class="card">
   <h1>📐 Inclinação</h1>
   <p style="font-size:clamp(11px,3vw,13px)">Segure o aparelho na posição em que vai jogar e toque no botão.</p>
@@ -165,7 +119,6 @@
   <button class="btn sec" id="bCalibVoltar">Usar botões</button>
 </div></div>
 
-<!-- RESULTADO -->
 <div class="tela" id="res" style="display:none"><div class="card">
   <h1>🏁 Classificação</h1>
   <table id="resTab"></table>
@@ -173,21 +126,24 @@
   <p id="resDica" style="font-size:clamp(9px,2.5vw,11px);color:#8fa0d0;text-align:center;margin:0">A corrida recomeça quando todos tocarem em "Correr de novo".</p>
 </div></div>
 
-<!-- CONEXÃO PERDIDA -->
 <div class="tela" id="mDrop" style="display:none"><div class="card">
   <h1>Conexão perdida</h1><button class="btn" onclick="location.reload()">Recarregar</button>
 </div></div>
 
 <script>
 /* =====================================================================
-   1. CONFIG
+   1. CONFIG — constantes (espelho do server.js; mantenha iguais!)
    ===================================================================== */
 const STEP = 1/60;
 const SEND_HZ = 30;
 const INTERP_MS = 100;
 const LAPS = 3;
-const WORLD_W = 1000;  // largura alvo do mundo visível
-const WORLD_H = 600;   // altura alvo do mundo visível
+const WORLD_W = 1000;
+const WORLD_H = 600;
+
+/* PERDA_BORDA — fator de conservação da velocidade ao raspar no muro
+   0.10 = conserva 10%, perde 90%. Ajuste aqui para afinar. */
+const PERDA_BORDA = 0.10;
 
 const CARS = [
  {n:'Velocista',  max:640, acc:380, grip:5.5, brk:420, turn:2.6, mass:1.00, cor:'#ff4757', r:15},
@@ -210,7 +166,7 @@ const TRACKS = [
 ];
 
 /* =====================================================================
-   2. FÍSICA
+   2. FÍSICA — idêntica ao servidor
    ===================================================================== */
 function stepCar(c, inp, dt, sup){
   const C = CARS[c.car];
@@ -227,21 +183,79 @@ function stepCar(c, inp, dt, sup){
   c.vx=nX*vf+(-nY)*vl; c.vy=nY*vf+nX*vl;
   c.x+=c.vx*dt; c.y+=c.vy*dt;
 }
-function distSeg(px,py,ax,ay,bx,by){
-  const dx=bx-ax,dy=by-ay,L=dx*dx+dy*dy||1;
-  let t=((px-ax)*dx+(py-ay)*dy)/L; t=Math.max(0,Math.min(1,t));
-  return Math.hypot(px-(ax+dx*t),py-(ay+dy*t));
+
+/* --- primitivas geométricas (ponto mais próximo num segmento) --- */
+function closestOnSeg(px,py,ax,ay,bx,by){
+  const dx=bx-ax, dy=by-ay, L=dx*dx+dy*dy||1;
+  let t=((px-ax)*dx+(py-ay)*dy)/L;
+  t=Math.max(0,Math.min(1,t));
+  const x=ax+dx*t, y=ay+dy*t;
+  return {dist:Math.hypot(px-x,py-y), x, y};
 }
-function surfaceAt(ti,x,y){
-  const T=TRACKS[ti]; let d=1e9;
-  for(let i=0;i<T.p.length;i++){const a=T.p[i],b=T.p[(i+1)%T.p.length];
-    d=Math.min(d,distSeg(x,y,a[0],a[1],b[0],b[1]));}
-  if(d<=T.w/2) return {grip:1,cap:1,drag:0,onTrack:true};
-  if(T.atalho){let ds=1e9;const S=T.atalho.p;
-    for(let i=0;i<S.length-1;i++)ds=Math.min(ds,distSeg(x,y,S[i][0],S[i][1],S[i+1][0],S[i+1][1]));
-    if(ds<=T.atalho.w/2) return {grip:.45,cap:1,drag:0,onTrack:true};}
-  return {grip:.4,cap:.3,drag:3.5,onTrack:false};
+function closestOnPath(px, py, path, closed){
+  let best = {dist: Infinity, x: px, y: py};
+  const n = path.length;
+  for (let i = 0; i < n; i++){
+    if (!closed && i === n-1) break;
+    const a = path[i], b = path[(i+1) % n];
+    const r = closestOnSeg(px, py, a[0], a[1], b[0], b[1]);
+    if (r.dist < best.dist) best = r;
+  }
+  return best;
 }
+function distToPath(px, py, path, closed){ return closestOnPath(px, py, path, closed).dist; }
+
+/* superfície (simplificada: só pista e atalho) */
+function surfaceAt(ti, x, y){
+  const T = TRACKS[ti];
+  if (distToPath(x, y, T.p, true) <= T.w/2) return {grip:1, cap:1, drag:0};
+  if (T.atalho && distToPath(x, y, T.atalho.p, false) <= T.atalho.w/2)
+    return {grip:.45, cap:1, drag:0};
+  // fallback (muro impede chegar aqui normalmente)
+  return {grip:.4, cap:.3, drag:3};
+}
+
+/* --- colisão com muro invisível (reposiciona + anula saída + perda) ---
+   Retorna {hit, x, y} com o ponto de contato se houve raspagem, senão null. */
+function resolveWallCollision(car, ti){
+  const T = TRACKS[ti];
+  const r = CARS[car.car].r;
+
+  const dMain  = distToPath(car.x, car.y, T.p, true);
+  const dShort = T.atalho ? distToPath(car.x, car.y, T.atalho.p, false) : Infinity;
+  const inMain  = dMain  <= T.w/2;
+  const inShort = T.atalho && dShort <= T.atalho.w/2;
+
+  if (inMain || inShort) return null; // dentro de alguma superfície válida
+
+  // Fora: escolhe o caminho mais próximo (pista principal vs atalho)
+  let path, closed, w;
+  if (!T.atalho || dMain <= dShort){ path = T.p; closed = true; w = T.w; }
+  else                              { path = T.atalho.p; closed = false; w = T.atalho.w; }
+
+  const cl = closestOnPath(car.x, car.y, path, closed);
+  let dx = car.x - cl.x, dy = car.y - cl.y;
+  let d = Math.hypot(dx, dy);
+  if (d < 1e-4){ dx = 1; dy = 0; d = 1; }     // proteção degenerada
+  const nx = dx/d, ny = dy/d;
+
+  // Reposiciona exatamente no limite permitido
+  car.x = cl.x + nx * (w/2 - r);
+  car.y = cl.y + ny * (w/2 - r);
+
+  // Remove componente perpendicular de saída (se estiver saindo)
+  const vDotN = car.vx * nx + car.vy * ny;
+  if (vDotN > 0){
+    car.vx -= vDotN * nx;
+    car.vy -= vDotN * ny;
+  }
+  // Perda drástica de velocidade (PERDA_BORDA é fração conservada)
+  car.vx *= PERDA_BORDA;
+  car.vy *= PERDA_BORDA;
+
+  return {hit:true, x:cl.x + nx*(w/2), y:cl.y + ny*(w/2)};
+}
+
 const lerpAng=(a,b,t)=>{let d=(b-a+Math.PI*3)%(Math.PI*2)-Math.PI;return a+d*t;};
 
 /* =====================================================================
@@ -251,9 +265,9 @@ const proto = location.protocol==='https:'?'wss:':'ws:';
 const ws = new WebSocket(proto+'//'+location.host);
 let myId=null, room=null, phase='lobby', trackIdx=0;
 let seq=0, pending=[], snapshots=[], srvOffset=0;
-let pred={x:0,y:0,h:0,vx:0,vy:0}, selfR={x:0,y:0,h:0};
+let pred={x:0,y:0,h:0,vx:0,vy:0,car:1}, selfR={x:0,y:0,h:0};
 let countEnd=0, raceStart=0, stateOrder=[], stateCars=[], myFin=false;
-let offTrackShake=0, particles=[];
+let camShake=0, particles=[];
 
 ws.onmessage = ev=>{
   const m=JSON.parse(ev.data);
@@ -279,10 +293,13 @@ function onState(m){
     const ls=m.lastSeqs[myId]||0;
     while(pending.length&&pending[0].seq<=ls) pending.shift();
     const s={x:me.x,y:me.y,h:me.h,vx:me.vx,vy:me.vy,car:me.car};
-    for(const p of pending) stepCar(s,p.inp,1/SEND_HZ,surfaceAt(trackIdx,s.x,s.y));
+    for(const p of pending){
+      stepCar(s,p.inp,1/SEND_HZ,surfaceAt(trackIdx,s.x,s.y));
+      resolveWallCollision(s, trackIdx);
+    }
     const d=Math.hypot(s.x-pred.x,s.y-pred.y);
     if(d>50||phase==='countdown'){ Object.assign(pred,s); }
-    else{ const k=.4; pred.x+= (s.x-pred.x)*k; pred.y+=(s.y-pred.y)*k;
+    else{ const k=.4; pred.x+=(s.x-pred.x)*k; pred.y+=(s.y-pred.y)*k;
           pred.h=lerpAng(pred.h,s.h,k); pred.vx=s.vx; pred.vy=s.vy; }
   }
   if(phase==='finished'||myFin) renderResults();
@@ -309,10 +326,10 @@ function rivalPose(id){
    4. ENTRADA
    ===================================================================== */
 const btn={ace:0,fre:0,esq:0,dir:0};
-let ctlMode='botoes', gyro=0, gyroBase=null;
+let ctlMode='botoes', gyro=0, gyroBase=null, audioCtx=null;
 function bindBtn(id,key){
   const el=document.getElementById(id);
-  const on=e=>{e.preventDefault();btn[key]=1;el.classList.add('on');};
+  const on=e=>{e.preventDefault();btn[key]=1;el.classList.add('on');ensureAudio();};
   const off=e=>{e.preventDefault();btn[key]=0;el.classList.remove('on');};
   el.addEventListener('pointerdown',on); el.addEventListener('pointerup',off);
   el.addEventListener('pointerleave',off); el.addEventListener('pointercancel',off);
@@ -323,6 +340,10 @@ addEventListener('deviceorientation',e=>{
   let v=(e.gamma-gyroBase)/25; if(Math.abs(v)<0.08)v=0;
   gyro=Math.max(-1,Math.min(1,v));
 });
+function ensureAudio(){
+  if(!audioCtx){ try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
+  if(audioCtx && audioCtx.state==='suspended') audioCtx.resume();
+}
 function rawInput(){
   if(phase!=='race') return {th:0,br:0,st:0};
   if(ctlMode==='tilt') return {th:btn.ace?1:0.55, br:btn.fre, st:gyro};
@@ -349,72 +370,42 @@ function applyCtl(){
 }
 
 /* =====================================================================
-   5. RENDER — DIMENSIONAMENTO ROBUSTO
+   5. RENDER
    ===================================================================== */
 const cvWrap=document.getElementById('cvWrap');
 const cv=document.getElementById('cv');
 const ctx=cv.getContext('2d');
 const cvErr=document.getElementById('cvErr');
-
 let canvasW=800, canvasH=600, dpr=1, camZoom=1;
 
 function resizeCanvas(){
   const rect = cvWrap.getBoundingClientRect();
-  const cssW = rect.width;
-  const cssH = rect.height;
-  
-  // Limitar DPR a no máximo 2 para evitar estouro de memória
+  const cssW = rect.width, cssH = rect.height;
   dpr = Math.min(window.devicePixelRatio || 1, 2);
-  
-  // Canvas em pixels físicos
   cv.width = Math.floor(cssW * dpr);
   cv.height = Math.floor(cssH * dpr);
-  
-  // CSS em pixels lógicos
   cv.style.width = cssW + 'px';
   cv.style.height = cssH + 'px';
-  
-  canvasW = cssW;
-  canvasH = cssH;
-  
-  // Escala baseada na menor dimensão para garantir FOV constante
+  canvasW = cssW; canvasH = cssH;
   camZoom = Math.min(cssW / WORLD_W, cssH / WORLD_H);
 }
-
 function checkOrientation(){
   const portrait = canvasH > canvasW && canvasW < 768;
-  const rotScreen = document.getElementById('rotScreen');
-  const wasVisible = rotScreen.style.display === 'flex';
-  
-  rotScreen.style.display = portrait?'flex':'none';
-  
+  const rs = document.getElementById('rotScreen');
+  const wasVisible = rs.style.display === 'flex';
+  rs.style.display = portrait?'flex':'none';
   if(!portrait && screen.orientation && screen.orientation.lock){
     try{screen.orientation.lock('landscape').catch(()=>{});}catch(e){}
   }
-  
-  // Se a sobreposição desapareceu, redimensionar de novo
-  if(wasVisible && !portrait){
-    setTimeout(resizeCanvas, 100);
-  }
+  if(wasVisible && !portrait) setTimeout(resizeCanvas, 100);
 }
-
-// Observador para detectar quando rotScreen muda de visibilidade
-const rotObserver = new MutationObserver(()=>{
-  const rotScreen = document.getElementById('rotScreen');
-  if(rotScreen.style.display !== 'flex'){
-    setTimeout(resizeCanvas, 50);
-  }
-});
-
-function initResize(){
-  resizeCanvas();
-  checkOrientation();
-  rotObserver.observe(document.getElementById('rotScreen'), {attributes:true, attributeFilter:['style']});
-}
+new MutationObserver(()=>{
+  const rs = document.getElementById('rotScreen');
+  if(rs.style.display !== 'flex') setTimeout(resizeCanvas, 50);
+}).observe(document.getElementById('rotScreen'), {attributes:true, attributeFilter:['style']});
 
 addEventListener('resize', ()=>{resizeCanvas();checkOrientation();});
 addEventListener('orientationchange', ()=>setTimeout(()=>{resizeCanvas();checkOrientation();}, 150));
-addEventListener('load', initResize);
 
 function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);
   ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
@@ -439,29 +430,63 @@ function drawCar(p,h,name,me){
   ctx.fillStyle='#0009'; rr(-C.r*0.2,-C.r*0.5,C.r*0.9,C.r,3); ctx.fill();
   ctx.fillStyle='#fffa'; ctx.fillRect(C.r*0.55,-C.r*0.62,4,C.r*1.24);
   if(p.car===0||p.car===3){ctx.fillStyle=C.cor;ctx.fillRect(-C.r-3,-C.r*0.7,3,C.r*1.4);}
-  if(p.car===4){ctx.fillStyle='#fff';ctx.fillRect(-C.r,- 2,C.r*2,4);}
+  if(p.car===4){ctx.fillStyle='#fff';ctx.fillRect(-C.r,-2,C.r*2,4);}
   ctx.restore();
   ctx.fillStyle=me?'#7dff8a':'#fff';ctx.font='bold 11px system-ui';ctx.textAlign='center';
   ctx.fillText(name+(p.off?' (off)':''),p.x,p.y-C.r-8);
 }
 
-function spawnDirt(x,y){
-  for(let i=0;i<3;i++){
-    particles.push({x,y,vx:(Math.random()-.5)*80,vy:(Math.random()-.5)*80,life:1});
+/* faíscas de raspagem no ponto de contato */
+function spawnSparks(x,y){
+  for(let i=0;i<6;i++){
+    particles.push({
+      x,y,
+      vx:(Math.random()-.5)*220,
+      vy:(Math.random()-.5)*220,
+      life:0.5+Math.random()*0.3,
+      spark:true
+    });
   }
 }
 function updateParticles(dt){
   for(let i=particles.length-1;i>=0;i--){
     const p=particles[i];
-    p.x+=p.vx*dt; p.y+=p.vy*dt; p.life-=dt*2;
+    p.x+=p.vx*dt; p.y+=p.vy*dt;
+    p.vx*=0.94; p.vy*=0.94;
+    p.life-=dt*2;
     if(p.life<=0) particles.splice(i,1);
   }
 }
 function drawParticles(){
   for(const p of particles){
-    ctx.fillStyle=`rgba(139,90,43,${p.life})`;
-    ctx.fillRect(p.x-2,p.y-2,4,4);
+    if(p.spark){
+      const a=Math.max(0,p.life);
+      ctx.fillStyle=`rgba(255,${180+Math.floor(Math.random()*60)},80,${a})`;
+      ctx.fillRect(p.x-1.5,p.y-1.5,3,3);
+    } else {
+      ctx.fillStyle=`rgba(139,90,43,${Math.max(0,p.life)})`;
+      ctx.fillRect(p.x-2,p.y-2,4,4);
+    }
   }
+}
+
+/* som curto de raspagem — ruído filtrado */
+let lastScrape=0;
+function playScrape(){
+  if(!audioCtx) return;
+  const now=performance.now();
+  if(now-lastScrape<120) return;  // limita frequência pra não virar chiado
+  lastScrape=now;
+  try{
+    const buf=audioCtx.createBuffer(1, audioCtx.sampleRate*0.08, audioCtx.sampleRate);
+    const d=buf.getChannelData(0);
+    for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*(1-i/d.length);
+    const src=audioCtx.createBufferSource(); src.buffer=buf;
+    const f=audioCtx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=900; f.Q.value=3;
+    const g=audioCtx.createGain(); g.gain.value=0.25;
+    src.connect(f); f.connect(g); g.connect(audioCtx.destination);
+    src.start();
+  }catch(e){}
 }
 
 function drawMinimap(){
@@ -469,9 +494,7 @@ function drawMinimap(){
   const mw=120, mh=90, mx=canvasW-mw-12, my=50;
   let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
   for(const [x,y] of T.p){minX=Math.min(minX,x);minY=Math.min(minY,y);maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);}
-  const pw=maxX-minX, ph=maxY-minY;
-  const scale=Math.min((mw-10)/pw,(mh-10)/ph);
-  
+  const scale=Math.min((mw-10)/(maxX-minX),(mh-10)/(maxY-minY));
   ctx.save();
   ctx.fillStyle='#00000088'; rr(mx,my,mw,mh,8); ctx.fill();
   ctx.translate(mx+5,my+5);
@@ -491,14 +514,10 @@ function drawMinimap(){
 }
 
 function draw(dt){
-  // Resetar transformação no início de cada quadro
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  
   ctx.fillStyle='#12141c';
   ctx.fillRect(0, 0, canvasW, canvasH);
-  
   const T=TRACKS[trackIdx];
-  
   const vel=Math.hypot(pred.vx,pred.vy);
   const maxOffset=120, lookAhead=Math.min(vel/500,1)*maxOffset;
   const tX=pred.x+Math.cos(pred.h)*lookAhead;
@@ -506,10 +525,8 @@ function draw(dt){
   selfR.x+=(tX-selfR.x)*Math.min(1,dt*10);
   selfR.y+=(tY-selfR.y)*Math.min(1,dt*10);
   selfR.h=lerpAng(selfR.h,pred.h,Math.min(1,dt*10));
-  
-  const shakeX=offTrackShake*(Math.random()-.5)*2;
-  const shakeY=offTrackShake*(Math.random()-.5)*2;
-  
+  const shakeX=camShake*(Math.random()-.5)*2;
+  const shakeY=camShake*(Math.random()-.5)*2;
   ctx.save();
   ctx.translate(canvasW/2+shakeX, canvasH*0.62+shakeY);
   ctx.scale(camZoom, camZoom);
@@ -520,11 +537,8 @@ function draw(dt){
     const p=rivalPose(c.id); if(p)drawCar(p,p.h,p.name,false); }
   drawCar({x:selfR.x,y:selfR.y,car:pred.car,off:false},selfR.h,(room&&room.meName)||'você',true);
   ctx.restore();
-  
   if(phase==='race'||phase==='countdown') drawMinimap();
-  
-  if(offTrackShake>0) offTrackShake-=dt*8;
-  if(offTrackShake<0) offTrackShake=0;
+  if(camShake>0){ camShake-=dt*10; if(camShake<0)camShake=0; }
 }
 
 /* =====================================================================
@@ -533,24 +547,18 @@ function draw(dt){
 const $=id=>document.getElementById(id);
 function toast(t){const e=$('toast');e.textContent=t;e.style.display='block';
   setTimeout(()=>e.style.display='none',2200);}
-
 $('bCriar').onclick=()=>ws.send(JSON.stringify({t:'create',name:$('inNome').value||'Piloto'}));
 $('bEntrar').onclick=()=>ws.send(JSON.stringify({t:'join',code:$('inCode').value.trim(),name:$('inNome').value||'Piloto'}));
-
 function renderLobby(){
   if(!room)return;
   $('mMenu').style.display='none'; $('mLobby').style.display='flex';
   $('lbCode').textContent=room.code;
-  
   $('lbJogs').innerHTML=room.players.map(p=>`<div class="jog"><span>${p.name}${p.id===room.you?' (você)':''}${p.host?' 👑':''}</span><span style="color:#9fb0ff">${CARS[p.car].n}</span></div>`).join('');
-  
   $('lbCars').innerHTML=CARS.map((c,i)=>`<button class="${i===room.myCar?'on':''}" data-c="${i}">${c.n}<br><small style="font-size:9px;color:#8fa0d0">vel ${c.max} · ader ${c.grip}</small></button>`).join('');
   $('lbCars').querySelectorAll('button').forEach(b=>b.onclick=()=>ws.send(JSON.stringify({t:'car',car:+b.dataset.c})));
-  
   const host=room.host;
   $('lbHostArea').style.display=host?'block':'none';
   $('lbDica').textContent=host?'':'O anfitrião escolhe a pista e inicia.';
-  
   if(host){
     $('lbTrks').innerHTML=TRACKS.map((t,i)=>`<button class="${i===room.track?'on':''}" data-t="${i}">${t.n}</button>`).join('');
     $('lbTrks').querySelectorAll('button').forEach(b=>b.onclick=()=>ws.send(JSON.stringify({t:'track',track:+b.dataset.t})));
@@ -558,23 +566,16 @@ function renderLobby(){
     $('bStart').textContent=room.players.length<2?'Aguardando mais jogadores...':'Iniciar corrida ('+room.players.length+')';
   }
 }
-
 $('bCopy').onclick=async()=>{
   if(!room)return;
   try{
     await navigator.clipboard.writeText(room.code);
-    const btn=$('bCopy');
-    btn.textContent='✓ Copiado!';
-    btn.classList.add('ok');
+    const btn=$('bCopy'); btn.textContent='✓ Copiado!'; btn.classList.add('ok');
     setTimeout(()=>{btn.textContent='📋 Copiar';btn.classList.remove('ok');},1500);
-  }catch(e){
-    toast('Não foi possível copiar');
-  }
+  }catch(e){ toast('Não foi possível copiar'); }
 };
-
 $('bStart').onclick=()=>ws.send(JSON.stringify({t:'start'}));
 $('bAgain').onclick=()=>{ $('res').style.display='none'; ws.send(JSON.stringify({t:'rematch'})); toast('Aguardando todos confirmarem…'); };
-
 function renderResults(){
   if($('res').style.display==='flex'&&!myFin)return;
   $('res').style.display='flex';
@@ -583,7 +584,6 @@ function renderResults(){
     const t=c.finT?((c.finT-raceStart)/1000).toFixed(1)+'s':'—';
     return `<tr><td>${i+1}º</td><td>${c.name}${c.id===myId?' (você)':''}</td><td>${t}</td></tr>`;}).join('');
 }
-
 function hud(){
   if(phase!=='race'&&phase!=='countdown')return;
   const pos=stateOrder.indexOf(myId)+1;
@@ -600,23 +600,23 @@ function hud(){
 }
 
 /* =====================================================================
-   7. LOOP COM PROTEÇÃO CONTRA FALHA
+   7. LOOP — integração de física + detecção de raspagem
    ===================================================================== */
 let acc=0,last=performance.now(),sendAcc=0;
 function frame(now){
   requestAnimationFrame(frame);
   let dt=(now-last)/1000; last=now; if(dt>0.25)dt=0.25;
   acc+=dt;
-  
   try{
     while(acc>=STEP){
       if(phase==='race'){
         const inp=rawInput();
-        const sup=surfaceAt(trackIdx,pred.x,pred.y);
-        stepCar(pred,inp,STEP,sup);
-        if(!sup.onTrack){
-          offTrackShake=Math.min(offTrackShake+STEP*6,1);
-          spawnDirt(pred.x,pred.y);
+        stepCar(pred,inp,STEP,surfaceAt(trackIdx,pred.x,pred.y));
+        const wall = resolveWallCollision(pred, trackIdx);
+        if (wall){
+          camShake = Math.min(camShake + 0.5, 1.0);
+          spawnSparks(wall.x, wall.y);
+          playScrape();
         }
         updateParticles(STEP);
         sendAcc+=STEP;
@@ -624,8 +624,7 @@ function frame(now){
       }
       acc-=STEP;
     }
-    draw(dt);
-    hud();
+    draw(dt); hud();
     cvErr.style.display='none';
   }catch(e){
     console.error('Erro no loop:',e);
@@ -633,14 +632,9 @@ function frame(now){
     cvErr.textContent='⚠️ Erro: '+e.message;
   }
 }
-
 ws.onopen=()=>{
-  setTimeout(()=>{
-    initResize();
-    requestAnimationFrame(frame);
-  }, 100);
+  setTimeout(()=>{ resizeCanvas(); checkOrientation(); requestAnimationFrame(frame); }, 100);
 };
-
 applyCtl();
 </script>
 </body>
