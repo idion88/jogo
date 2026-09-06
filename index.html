@@ -6,22 +6,26 @@
 <title>Turbo Sala — Corrida Multiplayer</title>
 <style>
   html,body{margin:0;height:100%;overflow:hidden;background:#12141c;font-family:system-ui,Arial,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none}
-  canvas{display:block}
   
-  /* ========== TELAS (LOBBY, MENU, ETC) ========== */
+  /* ========== CANVAS ========== */
+  #cvWrap{position:fixed;inset:0;z-index:1}
+  #cv{display:block;width:100%;height:100%}
+  #cvErr{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#8c2f2f;color:#fff;padding:20px;border-radius:12px;font-size:14px;z-index:99;display:none;max-width:90vw}
+  
+  /* ========== TELAS ========== */
   .tela{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(10,12,18,.92);z-index:20;padding:10px}
   .card{
     background:#1c2030;border:1px solid #2c3350;border-radius:14px;
     padding:14px;width:min(94vw,520px);color:#e8ecff;
     max-height:92dvh;overflow-y:auto;display:flex;flex-direction:column;gap:10px;
   }
-  .card h1{font-size:18px;margin:0;text-align:center}
-  .card h2{font-size:12px;margin:0;color:#9fb0ff;text-transform:uppercase;letter-spacing:.05em}
-  input,select{width:100%;box-sizing:border-box;padding:8px;border-radius:8px;border:1px solid #3a4270;background:#141828;color:#e8ecff;font-size:14px}
-  .btn{display:block;width:100%;padding:10px;border:none;border-radius:10px;background:#4c6fff;color:#fff;font-size:14px;font-weight:700;cursor:pointer}
+  .card h1{font-size:clamp(14px,4vw,20px);margin:0;text-align:center}
+  .card h2{font-size:clamp(10px,3vw,12px);margin:0;color:#9fb0ff;text-transform:uppercase;letter-spacing:.05em}
+  input,select{width:100%;box-sizing:border-box;padding:8px;border-radius:8px;border:1px solid #3a4270;background:#141828;color:#e8ecff;font-size:clamp(12px,3.5vw,14px)}
+  .btn{display:block;width:100%;padding:clamp(8px,2.5vw,12px);border:none;border-radius:10px;background:#4c6fff;color:#fff;font-size:clamp(12px,3.5vw,14px);font-weight:700;cursor:pointer;min-height:44px}
   .btn:disabled{opacity:.4;cursor:not-allowed}
   .btn.sec{background:#2a3050}
-  .btn.copy{background:#2ecc71;padding:6px 12px;font-size:12px;white-space:nowrap}
+  .btn.copy{background:#2ecc71;padding:6px 12px;font-size:clamp(10px,3vw,12px);white-space:nowrap;min-height:36px}
   .btn.copy.ok{background:#27ae60}
   .linha{display:flex;gap:8px}.linha>*{flex:1}
   
@@ -36,64 +40,64 @@
     background:#141828;border:2px solid #4c6fff;border-radius:10px;padding:10px 12px;margin-top:6px;
   }
   .lb-code-box .code{
-    flex:1;font-size:28px;font-weight:900;letter-spacing:.15em;color:#ffd54c;
+    flex:1;font-size:clamp(18px,7vw,28px);font-weight:900;letter-spacing:.15em;color:#ffd54c;
     font-family:'Courier New',monospace;text-align:center;
   }
   .lb-code-box .btn.copy{flex:0 0 auto}
   
-  /* Grid de duas colunas para aproveitar orientação horizontal */
   .lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   @media(max-height:420px){
     .lb-grid{grid-template-columns:1fr 1fr;gap:8px}
     .card{padding:10px;gap:6px}
     .lb-head{margin:-10px -10px 0;padding:8px 10px}
-    .lb-code-box .code{font-size:22px}
     .lb-code-box{padding:6px 10px;margin-top:4px}
-    .card h1{font-size:14px}
-    .card h2{font-size:11px}
   }
   @media(max-height:360px){
     .lb-code-box .code{font-size:18px}
-    .btn{padding:8px;font-size:13px}
-    .jog{padding:4px 6px;font-size:12px}
-    .carsel button,.trksel button{padding:6px 2px;font-size:10px}
   }
   
-  .jog{display:flex;justify-content:space-between;padding:5px 8px;background:#141828;border-radius:8px;font-size:13px}
+  .jog{display:flex;justify-content:space-between;padding:5px 8px;background:#141828;border-radius:8px;font-size:clamp(11px,3vw,13px)}
   .jog-list{display:flex;flex-direction:column;gap:4px;max-height:120px;overflow-y:auto}
   .carsel{display:flex;gap:4px;flex-wrap:wrap}
-  .carsel button{flex:1 1 30%;padding:6px 4px;border-radius:8px;border:2px solid transparent;background:#141828;color:#e8ecff;font-size:10px;cursor:pointer}
+  .carsel button{flex:1 1 30%;padding:6px 4px;border-radius:8px;border:2px solid transparent;background:#141828;color:#e8ecff;font-size:clamp(9px,2.5vw,11px);cursor:pointer;min-height:44px}
   .carsel button.on{border-color:#4c6fff}
   .trksel{display:flex;flex-direction:column;gap:4px}
-  .trksel button{padding:7px;border-radius:8px;border:2px solid transparent;background:#141828;color:#e8ecff;font-size:12px;cursor:pointer}
+  .trksel button{padding:7px;border-radius:8px;border:2px solid transparent;background:#141828;color:#e8ecff;font-size:clamp(11px,3vw,12px);cursor:pointer;min-height:44px}
   .trksel button.on{border-color:#4c6fff}
   .lb-col{display:flex;flex-direction:column;gap:6px;min-width:0}
   .lb-col h2{margin:0}
   
   /* ========== HUD E CONTROLES ========== */
-  #hud{position:fixed;top:8px;left:10px;color:#fff;font-size:14px;z-index:5;text-shadow:0 1px 3px #000;pointer-events:none}
-  #hud b{font-size:18px}
-  #btnCtl{position:fixed;top:8px;right:10px;z-index:6;background:#2a3050cc;border:none;color:#fff;border-radius:8px;padding:6px 10px;font-size:14px;cursor:pointer}
+  #hud{position:fixed;top:clamp(6px,2vw,10px);left:clamp(8px,2.5vw,12px);color:#fff;font-size:clamp(12px,3.5vw,14px);z-index:5;text-shadow:0 1px 3px #000;pointer-events:none}
+  #hud b{font-size:clamp(14px,4vw,18px)}
+  #btnCtl{position:fixed;top:clamp(6px,2vw,10px);right:clamp(8px,2.5vw,12px);z-index:6;background:#2a3050cc;border:none;color:#fff;border-radius:8px;padding:6px 10px;font-size:clamp(11px,3vw,14px);cursor:pointer;min-height:36px}
   #cont{position:fixed;inset:0;z-index:4;pointer-events:none}
-  .cb{position:absolute;bottom:20px;width:76px;height:76px;border-radius:50%;background:#ffffff22;border:2px solid #ffffff44;color:#fff;font-size:26px;display:flex;align-items:center;justify-content:center;pointer-events:auto;touch-action:none}
+  .cb{position:absolute;bottom:clamp(14px,4vw,24px);width:clamp(56px,18vw,76px);height:clamp(56px,18vw,76px);border-radius:50%;background:#ffffff22;border:2px solid #ffffff44;color:#fff;font-size:clamp(20px,6vw,26px);display:flex;align-items:center;justify-content:center;pointer-events:auto;touch-action:none;min-width:44px;min-height:44px}
   .cb:active,.cb.on{background:#4c6fff88}
-  #bEsq{left:16px}#bDir{left:104px}#bFre{right:104px}#bAce{right:16px;background:#2ecc7144}
-  #count{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font-size:90px;font-weight:900;color:#ffd54c;text-shadow:0 2px 12px #000;z-index:8;pointer-events:none}
-  #toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#0009;color:#fff;padding:8px 14px;border-radius:10px;z-index:30;font-size:13px;display:none}
+  #bEsq{left:clamp(12px,4vw,20px)}
+  #bDir{left:calc(clamp(12px,4vw,20px) + clamp(56px,18vw,76px) + clamp(6px,2vw,10px))}
+  #bFre{right:calc(clamp(12px,4vw,20px) + clamp(56px,18vw,76px) + clamp(6px,2vw,10px))}
+  #bAce{right:clamp(12px,4vw,20px);background:#2ecc7144}
+  #count{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(60px,20vw,90px);font-weight:900;color:#ffd54c;text-shadow:0 2px 12px #000;z-index:8;pointer-events:none}
+  #toast{position:fixed;top:clamp(50px,15vw,70px);left:50%;transform:translateX(-50%);background:#0009;color:#fff;padding:8px 14px;border-radius:10px;z-index:30;font-size:clamp(11px,3vw,13px);display:none}
   .off{opacity:.45}
   
   /* ========== RESULTADO ========== */
-  #res table{width:100%;font-size:13px;border-collapse:collapse}
+  #res table{width:100%;font-size:clamp(11px,3vw,13px);border-collapse:collapse}
   #res td{padding:4px;border-bottom:1px solid #2c3350}
   
   /* ========== TELA DE ORIENTAÇÃO ========== */
-  #rotScreen{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:100;display:none;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-size:18px;text-align:center;padding:20px}
-  #rotScreen .icon{font-size:80px;margin-bottom:20px;animation:rotate 2s infinite}
+  #rotScreen{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:100;display:none;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-size:clamp(14px,4vw,18px);text-align:center;padding:20px}
+  #rotScreen .icon{font-size:clamp(50px,15vw,80px);margin-bottom:20px;animation:rotate 2s infinite}
   @keyframes rotate{0%,100%{transform:rotate(0deg)}50%{transform:rotate(90deg)}}
 </style>
 </head>
 <body>
-<canvas id="cv"></canvas>
+
+<div id="cvWrap">
+  <canvas id="cv"></canvas>
+  <div id="cvErr"></div>
+</div>
 
 <div id="hud" style="display:none">
   <b id="hPos">–</b> <span id="hLap"></span><br><span id="hVel"></span> <span id="hTmp"></span>
@@ -127,7 +131,7 @@
 <!-- LOBBY -->
 <div class="tela" id="mLobby" style="display:none"><div class="card">
   <div class="lb-head">
-    <h1 style="font-size:14px;margin:0">Sala criada!</h1>
+    <h1 style="font-size:clamp(12px,3.5vw,16px);margin:0">Sala criada!</h1>
     <div class="lb-code-box">
       <span class="code" id="lbCode">----</span>
       <button class="btn copy" id="bCopy">📋 Copiar</button>
@@ -150,13 +154,13 @@
     </div>
   </div>
   
-  <p id="lbDica" style="font-size:11px;color:#8fa0d0;margin:0;text-align:center"></p>
+  <p id="lbDica" style="font-size:clamp(9px,2.5vw,11px);color:#8fa0d0;margin:0;text-align:center"></p>
 </div></div>
 
 <!-- CALIBRAGEM -->
 <div class="tela" id="mCalib" style="display:none"><div class="card">
   <h1>📐 Inclinação</h1>
-  <p style="font-size:13px">Segure o aparelho na posição em que vai jogar e toque no botão.</p>
+  <p style="font-size:clamp(11px,3vw,13px)">Segure o aparelho na posição em que vai jogar e toque no botão.</p>
   <button class="btn" id="bCalib">Calibrar centro</button>
   <button class="btn sec" id="bCalibVoltar">Usar botões</button>
 </div></div>
@@ -166,7 +170,7 @@
   <h1>🏁 Classificação</h1>
   <table id="resTab"></table>
   <button class="btn" id="bAgain">Correr de novo</button>
-  <p id="resDica" style="font-size:11px;color:#8fa0d0;text-align:center;margin:0">A corrida recomeça quando todos tocarem em "Correr de novo".</p>
+  <p id="resDica" style="font-size:clamp(9px,2.5vw,11px);color:#8fa0d0;text-align:center;margin:0">A corrida recomeça quando todos tocarem em "Correr de novo".</p>
 </div></div>
 
 <!-- CONEXÃO PERDIDA -->
@@ -176,13 +180,14 @@
 
 <script>
 /* =====================================================================
-   1. CONFIG — constantes de ajuste (espelho do server.js; mantenha iguais!)
+   1. CONFIG
    ===================================================================== */
 const STEP = 1/60;
 const SEND_HZ = 30;
 const INTERP_MS = 100;
 const LAPS = 3;
-const WORLD_W = 1000;
+const WORLD_W = 1000;  // largura alvo do mundo visível
+const WORLD_H = 600;   // altura alvo do mundo visível
 
 const CARS = [
  {n:'Velocista',  max:640, acc:380, grip:5.5, brk:420, turn:2.6, mass:1.00, cor:'#ff4757', r:15},
@@ -344,27 +349,72 @@ function applyCtl(){
 }
 
 /* =====================================================================
-   5. RENDER
+   5. RENDER — DIMENSIONAMENTO ROBUSTO
    ===================================================================== */
-const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
-let camZoom=1, camW=1000, camH=600;
+const cvWrap=document.getElementById('cvWrap');
+const cv=document.getElementById('cv');
+const ctx=cv.getContext('2d');
+const cvErr=document.getElementById('cvErr');
 
-function resize(){
-  cv.width=innerWidth*devicePixelRatio;
-  cv.height=innerHeight*devicePixelRatio;
-  camW = innerWidth; camH = innerHeight;
-  camZoom = Math.min(camW/WORLD_W, camH/600);
-  checkOrientation();
+let canvasW=800, canvasH=600, dpr=1, camZoom=1;
+
+function resizeCanvas(){
+  const rect = cvWrap.getBoundingClientRect();
+  const cssW = rect.width;
+  const cssH = rect.height;
+  
+  // Limitar DPR a no máximo 2 para evitar estouro de memória
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  
+  // Canvas em pixels físicos
+  cv.width = Math.floor(cssW * dpr);
+  cv.height = Math.floor(cssH * dpr);
+  
+  // CSS em pixels lógicos
+  cv.style.width = cssW + 'px';
+  cv.style.height = cssH + 'px';
+  
+  canvasW = cssW;
+  canvasH = cssH;
+  
+  // Escala baseada na menor dimensão para garantir FOV constante
+  camZoom = Math.min(cssW / WORLD_W, cssH / WORLD_H);
 }
+
 function checkOrientation(){
-  const portrait = innerHeight > innerWidth && innerWidth < 768;
-  document.getElementById('rotScreen').style.display = portrait?'flex':'none';
+  const portrait = canvasH > canvasW && canvasW < 768;
+  const rotScreen = document.getElementById('rotScreen');
+  const wasVisible = rotScreen.style.display === 'flex';
+  
+  rotScreen.style.display = portrait?'flex':'none';
+  
   if(!portrait && screen.orientation && screen.orientation.lock){
     try{screen.orientation.lock('landscape').catch(()=>{});}catch(e){}
   }
+  
+  // Se a sobreposição desapareceu, redimensionar de novo
+  if(wasVisible && !portrait){
+    setTimeout(resizeCanvas, 100);
+  }
 }
-addEventListener('resize',resize);
-addEventListener('orientationchange',()=>setTimeout(checkOrientation,100));
+
+// Observador para detectar quando rotScreen muda de visibilidade
+const rotObserver = new MutationObserver(()=>{
+  const rotScreen = document.getElementById('rotScreen');
+  if(rotScreen.style.display !== 'flex'){
+    setTimeout(resizeCanvas, 50);
+  }
+});
+
+function initResize(){
+  resizeCanvas();
+  checkOrientation();
+  rotObserver.observe(document.getElementById('rotScreen'), {attributes:true, attributeFilter:['style']});
+}
+
+addEventListener('resize', ()=>{resizeCanvas();checkOrientation();});
+addEventListener('orientationchange', ()=>setTimeout(()=>{resizeCanvas();checkOrientation();}, 150));
+addEventListener('load', initResize);
 
 function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);
   ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
@@ -416,7 +466,7 @@ function drawParticles(){
 
 function drawMinimap(){
   const T=TRACKS[trackIdx];
-  const mw=120, mh=90, mx=innerWidth-mw-12, my=50;
+  const mw=120, mh=90, mx=canvasW-mw-12, my=50;
   let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
   for(const [x,y] of T.p){minX=Math.min(minX,x);minY=Math.min(minY,y);maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);}
   const pw=maxX-minX, ph=maxY-minY;
@@ -441,8 +491,12 @@ function drawMinimap(){
 }
 
 function draw(dt){
-  ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
-  ctx.fillStyle='#12141c';ctx.fillRect(0,0,innerWidth,innerHeight);
+  // Resetar transformação no início de cada quadro
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  
+  ctx.fillStyle='#12141c';
+  ctx.fillRect(0, 0, canvasW, canvasH);
+  
   const T=TRACKS[trackIdx];
   
   const vel=Math.hypot(pred.vx,pred.vy);
@@ -456,11 +510,10 @@ function draw(dt){
   const shakeX=offTrackShake*(Math.random()-.5)*2;
   const shakeY=offTrackShake*(Math.random()-.5)*2;
   
-  const z=camZoom;
   ctx.save();
-  ctx.translate(innerWidth/2+shakeX,innerHeight*0.62+shakeY);
-  ctx.scale(z,z);
-  ctx.translate(-selfR.x,-selfR.y);
+  ctx.translate(canvasW/2+shakeX, canvasH*0.62+shakeY);
+  ctx.scale(camZoom, camZoom);
+  ctx.translate(-selfR.x, -selfR.y);
   drawTrack(T);
   drawParticles();
   for(const c of stateCars){ if(c.id===myId)continue;
@@ -489,10 +542,8 @@ function renderLobby(){
   $('mMenu').style.display='none'; $('mLobby').style.display='flex';
   $('lbCode').textContent=room.code;
   
-  // Lista de jogadores
   $('lbJogs').innerHTML=room.players.map(p=>`<div class="jog"><span>${p.name}${p.id===room.you?' (você)':''}${p.host?' 👑':''}</span><span style="color:#9fb0ff">${CARS[p.car].n}</span></div>`).join('');
   
-  // Seleção de carro
   $('lbCars').innerHTML=CARS.map((c,i)=>`<button class="${i===room.myCar?'on':''}" data-c="${i}">${c.n}<br><small style="font-size:9px;color:#8fa0d0">vel ${c.max} · ader ${c.grip}</small></button>`).join('');
   $('lbCars').querySelectorAll('button').forEach(b=>b.onclick=()=>ws.send(JSON.stringify({t:'car',car:+b.dataset.c})));
   
@@ -508,7 +559,6 @@ function renderLobby(){
   }
 }
 
-// Botão copiar código
 $('bCopy').onclick=async()=>{
   if(!room)return;
   try{
@@ -550,31 +600,47 @@ function hud(){
 }
 
 /* =====================================================================
-   7. LOOP
+   7. LOOP COM PROTEÇÃO CONTRA FALHA
    ===================================================================== */
 let acc=0,last=performance.now(),sendAcc=0;
 function frame(now){
   requestAnimationFrame(frame);
   let dt=(now-last)/1000; last=now; if(dt>0.25)dt=0.25;
   acc+=dt;
-  while(acc>=STEP){
-    if(phase==='race'){
-      const inp=rawInput();
-      const sup=surfaceAt(trackIdx,pred.x,pred.y);
-      stepCar(pred,inp,STEP,sup);
-      if(!sup.onTrack){
-        offTrackShake=Math.min(offTrackShake+STEP*6,1);
-        spawnDirt(pred.x,pred.y);
+  
+  try{
+    while(acc>=STEP){
+      if(phase==='race'){
+        const inp=rawInput();
+        const sup=surfaceAt(trackIdx,pred.x,pred.y);
+        stepCar(pred,inp,STEP,sup);
+        if(!sup.onTrack){
+          offTrackShake=Math.min(offTrackShake+STEP*6,1);
+          spawnDirt(pred.x,pred.y);
+        }
+        updateParticles(STEP);
+        sendAcc+=STEP;
+        if(sendAcc>=1/SEND_HZ){ sendAcc=0; sendInput(inp); }
       }
-      updateParticles(STEP);
-      sendAcc+=STEP;
-      if(sendAcc>=1/SEND_HZ){ sendAcc=0; sendInput(inp); }
+      acc-=STEP;
     }
-    acc-=STEP;
+    draw(dt);
+    hud();
+    cvErr.style.display='none';
+  }catch(e){
+    console.error('Erro no loop:',e);
+    cvErr.style.display='block';
+    cvErr.textContent='⚠️ Erro: '+e.message;
   }
-  draw(dt); hud();
 }
-ws.onopen=()=>{resize();requestAnimationFrame(frame);};
+
+ws.onopen=()=>{
+  setTimeout(()=>{
+    initResize();
+    requestAnimationFrame(frame);
+  }, 100);
+};
+
 applyCtl();
 </script>
 </body>
