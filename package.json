@@ -1,0 +1,9 @@
+{
+  "name": "turbo-sala",
+  "version": "1.0.0",
+  "description": "Corrida de carros multiplayer top-down com servidor autoritativo",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" },
+  "dependencies": { "ws": "^8.17.0" }
+}

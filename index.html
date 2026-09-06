@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Turbo Sala — Corrida Multiplayer</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#12141c;font-family:system-ui,Arial,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none}
+  canvas{display:block}
+  .tela{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(10,12,18,.92);z-index:20}
+  .card{background:#1c2030;border:1px solid #2c3350;border-radius:14px;padding:18px;width:min(92vw,420px);color:#e8ecff;max-height:92vh;overflow:auto}
+  h1{font-size:20px;margin:0 0 10px;text-align:center}
+  h2{font-size:14px;margin:12px 0 6px;color:#9fb0ff}
+  input,select{width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid #3a4270;background:#141828;color:#e8ecff;font-size:15px}
+  .btn{display:block;width:100%;margin-top:10px;padding:12px;border:none;border-radius:10px;background:#4c6fff;color:#fff;font-size:16px;font-weight:700}
+  .btn:disabled{opacity:.4}
+  .btn.sec{background:#2a3050}
+  .linha{display:flex;gap:8px}.linha>*{flex:1}
+  .jog{display:flex;justify-content:space-between;padding:6px 8px;background:#141828;border-radius:8px;margin-top:6px;font-size:14px}
+  .carsel{display:flex;gap:6px;flex-wrap:wrap}
+  .carsel button{flex:1 1 30%;padding:8px 4px;border-radius:8px;border:2px solid transparent;background:#141828;color:#e8ecff;font-size:11px}
+  .carsel button.on{border-color:#4c6fff}
+  .trksel button{width:100%;margin-top:6px;padding:9px;border-radius:8px;border:2px solid transparent;background:#141828;color:#e8ecff}
+  .trksel button.on{border-color:#4c6fff}
+  #hud{position:fixed;top:8px;left:10px;color:#fff;font-size:14px;z-index:5;text-shadow:0 1px 3px #000;pointer-events:none}
+  #hud b{font-size:18px}
+  #btnCtl{position:fixed;top:8px;right:10px;z-index:6;background:#2a3050cc;border:none;color:#fff;border-radius:8px;padding:6px 10px;font-size:14px}
+  #cont{position:fixed;inset:0;z-index:4;pointer-events:none}
+  .cb{position:absolute;bottom:20px;width:76px;height:76px;border-radius:50%;background:#ffffff22;border:2px solid #ffffff44;color:#fff;font-size:26px;display:flex;align-items:center;justify-content:center;pointer-events:auto;touch-action:none}
+  .cb:active,.cb.on{background:#4c6fff88}
+  #bEsq{left:16px}#bDir{left:104px}#bFre{right:104px}#bAce{right:16px;background:#2ecc7144}
+  #count{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font-size:90px;font-weight:900;color:#ffd54c;text-shadow:0 2px 12px #000;z-index:8;pointer-events:none}
+  #toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#0009;color:#fff;padding:8px 14px;border-radius:10px;z-index:30;font-size:13px;display:none}
+  .off{opacity:.45}
+  #res table{width:100%;font-size:14px;border-collapse:collapse}
+  #res td{padding:5px 4px;border-bottom:1px solid #2c3350}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+
+<div id="hud" style="display:none">
+  <b id="hPos">–</b> <span id="hLap"></span><br><span id="hVel"></span> <span id="hTmp"></span>
+</div>
+<button id="btnCtl" style="display:none">📐 inclinação</button>
+
+<div id="cont" style="display:none">
+  <div class="cb" id="bEsq">◀</div><div class="cb" id="bDir">▶</div>
+  <div class="cb" id="bFre">🛑</div><div class="cb" id="bAce">🚀</div>
+</div>
+
+<div id="count" style="display:none"></div>
+<div id="toast"></div>
+
+<!-- MENU -->
+<div class="tela" id="mMenu"><div class="card">
+  <h1>🏁 Turbo Sala</h1>
+  <input id="inNome" placeholder="Seu nome" maxlength="12">
+  <div class="linha" style="margin-top:10px">
+    <button class="btn" id="bCriar">Criar sala</button>
+  </div>
+  <div class="linha" style="margin-top:8px">
+    <input id="inCode" placeholder="Código da sala" style="text-transform:uppercase">
+    <button class="btn sec" id="bEntrar">Entrar</button>
+  </div>
+</div></div>
+
+<!-- LOBBY -->
+<div class="tela" id="mLobby" style="display:none"><div class="card">
+  <h1>Sala <span id="lbCode"></span></h1>
+  <div id="lbJogs"></div>
+  <h2>Seu carro</h2><div class="carsel" id="lbCars"></div>
+  <div id="lbHostArea">
+    <h2>Pista</h2><div class="trksel" id="lbTrks"></div>
+    <button class="btn" id="bStart">Iniciar corrida (mín. 2)</button>
+  </div>
+  <p id="lbDica" style="font-size:12px;color:#8fa0d0"></p>
+</div></div>
+
+<!-- CALIBRAGEM -->
+<div class="tela" id="mCalib" style="display:none"><div class="card">
+  <h1>📐 Inclinação</h1>
+  <p style="font-size:14px">Segure o aparelho na posição em que vai jogar e toque no botão. O giroscópio do iOS só funciona em página HTTPS.</p>
+  <button class="btn" id="bCalib">Calibrar centro</button>
+  <button class="btn sec" id="bCalibVoltar">Usar botões</button>
+</div></div>
+
+<!-- RESULTADO -->
+<div class="tela" id="res" style="display:none"><div class="card">
+  <h1>🏁 Classificação</h1>
+  <table id="resTab"></table>
+  <button class="btn" id="bAgain">Correr de novo</button>
+  <p id="resDica" style="font-size:12px;color:#8fa0d0;text-align:center"></p>
+</div></div>
+
+<!-- CONEXÃO PERDIDA -->
+<div class="tela" id="mDrop" style="display:none"><div class="card">
+  <h1>Conexão perdida</h1><button class="btn" onclick="location.reload()">Recarregar</button>
+</div></div>
+
+<script>
+/* =====================================================================
+   1. CONFIG — constantes de ajuste (espelho do server.js; mantenha iguais!)
+   ===================================================================== */
+const STEP = 1/60;            // passo fixo da física do cliente
+const SEND_HZ = 30;           // taxa de envio de input p/ servidor
+const INTERP_MS = 100;        // atraso de interpolação dos rivais
+const LAPS = 3;               // voltas da corrida
+
+const CARS = [
+ {n:'Velocista',  max:640, acc:300, grip:5.5, brk:420, turn:2.6, mass:1.00, cor:'#ff4757', r:15},
+ {n:'Equilibrado',max:560, acc:340, grip:7.0, brk:520, turn:2.9, mass:1.05, cor:'#2ed573', r:15},
+ {n:'Ágil',       max:500, acc:430, grip:8.5, brk:560, turn:3.4, mass:0.90, cor:'#ffa502', r:14},
+ {n:'Pesado',     max:540, acc:260, grip:6.5, brk:480, turn:2.7, mass:1.60, cor:'#8395a7', r:18},
+ {n:'Técnico',    max:520, acc:360, grip:10 , brk:600, turn:3.2, mass:0.95, cor:'#1e90ff', r:15},
+];
+const TRACKS = [
+ {n:'Circuito Veloz', w:90,
+  p:[[150,150],[1450,150],[1550,250],[1550,750],[1450,850],[150,850],[50,750],[50,250]],
+  cps:[[800,150],[1550,500],[800,850],[50,500]]},
+ {n:'Circuito Travado', w:56,
+  p:[[150,150],[650,150],[750,250],[650,350],[350,350],[250,450],[350,550],[750,550],[850,650],[750,750],[150,750],[50,650],[50,250]],
+  cps:[[550,150],[300,400],[800,600],[100,500]]},
+ {n:'Circuito Misto', w:70,
+  p:[[150,150],[1450,150],[1550,250],[1550,750],[1450,850],[900,850],[800,750],[700,650],[600,750],[500,850],[150,850],[50,750],[50,250]],
+  cps:[[800,150],[1550,500],[900,850],[500,850],[50,500]],
+  atalho:{w:30, p:[[900,850],[700,800],[500,850]]}}, // mais curto, estreito e escorregadio
+];
+
+/* =====================================================================
+   2. FÍSICA — idêntica à do servidor (predição precisa coincidir)
+   ===================================================================== */
+function stepCar(c, inp, dt, sup){
+  const C = CARS[c.car];
+  const fX=Math.cos(c.h), fY=Math.sin(c.h), rX=-fY, rY=fX;
+  let vf=c.vx*fX+c.vy*fY, vl=c.vx*rX+c.vy*rY;
+  if(inp.th>0) vf+=C.acc*inp.th*dt;
+  if(inp.br>0) vf-=C.brk*inp.br*dt;
+  vf-=vf*0.6*dt;                                   // arrasto
+  vl*=Math.max(0,1-C.grip*sup.grip*dt);            // aderência lateral (derrapagem)
+  vf=Math.max(-C.max*0.35,Math.min(C.max*sup.cap,vf));
+  const eff=Math.min(1,Math.abs(vf)/140)*(vf<0?-1:1);
+  c.h+=inp.st*C.turn*eff*dt;
+  const nX=Math.cos(c.h), nY=Math.sin(c.h);
+  c.vx=nX*vf+(-nY)*vl; c.vy=nY*vf+nX*vl;
+  c.x+=c.vx*dt; c.y+=c.vy*dt;
+}
+function distSeg(px,py,ax,ay,bx,by){
+  const dx=bx-ax,dy=by-ay,L=dx*dx+dy*dy||1;
+  let t=((px-ax)*dx+(py-ay)*dy)/L; t=Math.max(0,Math.min(1,t));
+  return Math.hypot(px-(ax+dx*t),py-(ay+dy*t));
+}
+function surfaceAt(ti,x,y){
+  const T=TRACKS[ti]; let d=1e9;
+  for(let i=0;i<T.p.length;i++){const a=T.p[i],b=T.p[(i+1)%T.p.length];
+    d=Math.min(d,distSeg(x,y,a[0],a[1],b[0],b[1]));}
+  if(d<=T.w/2) return {grip:1,cap:1};
+  if(T.atalho){let ds=1e9;const S=T.atalho.p;
+    for(let i=0;i<S.length-1;i++)ds=Math.min(ds,distSeg(x,y,S[i][0],S[i][1],S[i+1][0],S[i+1][1]));
+    if(ds<=T.atalho.w/2) return {grip:.45,cap:1};}  // escorregadio
+  return {grip:.7,cap:.45};                          // fora: perde velocidade, não trava
+}
+const lerpAng=(a,b,t)=>{let d=(b-a+Math.PI*3)%(Math.PI*2)-Math.PI;return a+d*t;};
+
+/* =====================================================================
+   3. REDE + PREDIÇÃO
+   - Predição local: integro meu carro a cada STEP com meu input cru.
+   - Cada input enviado leva um `seq`. O servidor responde `lastSeq`
+     (último input dele processado): descarto os confirmados e reaplico
+     os pendentes sobre o estado autoritativo (reconciliação).
+   - Rivais: guardo snapshots e desenho ~100 ms no passado, interpolando.
+   ===================================================================== */
+const PROTO = (location.protocol==='https:') ? 'wss://' : 'ws://';
+const ws = new WebSocket(PROTO+location.host);
+let myId=null, room=null, phase='lobby', trackIdx=0;
+let seq=0, pending=[], snapshots=[], srvOffset=0;
+let pred={x:0,y:0,h:0,vx:0,vy:0}, selfR={x:0,y:0,h:0};
+let countEnd=0, raceStart=0, stateOrder=[], stateCars=[], myFin=false;
+
+ws.onmessage = ev=>{
+  const m=JSON.parse(ev.data);
+  if(m.t==='room'){ room=m; trackIdx=m.track; myId=m.you; renderLobby(); }
+  else if(m.t==='err'){ toast(m.msg); }
+  else if(m.t==='state'){ onState(m); }
+};
+ws.onclose=()=>{ if(phase!=='lobby') document.getElementById('mDrop').style.display='flex'; };
+
+function sendInput(inp){
+  seq++; pending.push({seq,inp});
+  if(pending.length>200) pending.shift();
+  ws.send(JSON.stringify({t:'input',seq,th:inp.th,br:inp.br,st:+inp.st.toFixed(3)}));
+}
+function onState(m){
+  phase=m.phase; countEnd=m.countEnd; raceStart=m.raceStart;
+  stateOrder=m.order; stateCars=m.cars;
+  srvOffset = performance.now()-m.sT;               // estima relógio do servidor
+  snapshots.push({t:m.sT,cars:m.cars}); if(snapshots.length>20)snapshots.shift();
+  const me=m.cars.find(c=>c.id===myId); if(!me) return;
+  myFin=!!me.fin;
+  if(phase==='race'||phase==='countdown'){
+    // --- reconciliação ---
+    const ls=m.lastSeqs[myId]||0;
+    while(pending.length&&pending[0].seq<=ls) pending.shift();
+    const s={x:me.x,y:me.y,h:me.h,vx:me.vx,vy:me.vy,car:me.car};
+    // cada input pendente vale 1/SEND_HZ; reaplico em passos de STEP p/ bater com a predicao
+    for(const p of pending){ let rest=1/SEND_HZ;
+      while(rest>1e-6){ const h=Math.min(STEP,rest);
+        stepCar(s,p.inp,h,surfaceAt(trackIdx,s.x,s.y)); rest-=h; } }
+    const d=Math.hypot(s.x-pred.x,s.y-pred.y);
+    if(d>50||phase==='countdown'){ Object.assign(pred,s); }   // erro grande: snap
+    else{ const k=.4; pred.x+= (s.x-pred.x)*k; pred.y+=(s.y-pred.y)*k;
+          pred.h=lerpAng(pred.h,s.h,k); pred.vx=s.vx; pred.vy=s.vy; }
+  }
+  if(phase==='finished'||myFin) renderResults();
+  document.getElementById('mLobby').style.display = phase==='lobby'?'flex':'none';
+}
+const srvNow=()=>performance.now()-srvOffset;
+function rivalPose(id){
+  const t=srvNow()-INTERP_MS;
+  let a=null,b=null;
+  for(let i=0;i<snapshots.length;i++){
+    if(snapshots[i].t<=t) a=snapshots[i];
+    if(snapshots[i].t>=t){ b=snapshots[i]; break; }
+  }
+  if(!a) a=b||snapshots[0]; if(!b) b=a;
+  if(!a) return null;
+  const ca=a.cars.find(c=>c.id===id), cb=b.cars.find(c=>c.id===id);
+  if(!ca||!cb) return ca||cb;
+  const f=(a.t===b.t)?0:Math.max(0,Math.min(1,(t-a.t)/(b.t-a.t)));
+  return {x:ca.x+(cb.x-ca.x)*f, y:ca.y+(cb.y-ca.y)*f, h:lerpAng(ca.h,cb.h,f),
+          car:ca.car, off:ca.off, fin:ca.fin, name:ca.name};
+}
+
+/* =====================================================================
+   4. ENTRADA — botões multi-toque + giroscópio (com permissão iOS)
+   ===================================================================== */
+const btn={ace:0,fre:0,esq:0,dir:0};
+let ctlMode='botoes', gyro=0, gyroBase=null;
+function bindBtn(id,key){
+  const el=document.getElementById(id);
+  const on=e=>{e.preventDefault();btn[key]=1;el.classList.add('on');};
+  const off=e=>{e.preventDefault();btn[key]=0;el.classList.remove('on');};
+  el.addEventListener('pointerdown',on); el.addEventListener('pointerup',off);
+  el.addEventListener('pointerleave',off); el.addEventListener('pointercancel',off);
+}
+bindBtn('bAce','ace');bindBtn('bFre','fre');bindBtn('bEsq','esq');bindBtn('bDir','dir');
+addEventListener('deviceorientation',e=>{
+  if(e.gamma==null||gyroBase==null)return;
+  let v=(e.gamma-gyroBase)/25; if(Math.abs(v)<0.08)v=0;   // zona morta
+  gyro=Math.max(-1,Math.min(1,v));
+});
+function rawInput(){
+  if(phase!=='race') return {th:0,br:0,st:0};
+  if(ctlMode==='tilt') return {th:btn.ace?1:0.55, br:btn.fre, st:gyro};
+  return {th:btn.ace, br:btn.fre, st:(btn.dir?1:0)-(btn.esq?1:0)};
+}
+document.getElementById('btnCtl').onclick=()=>{
+  if(ctlMode==='botoes'){
+    const D=window.DeviceOrientationEvent;
+    if(D&&typeof D.requestPermission==='function'){        // iOS exige gesto do usuário
+      D.requestPermission().then(r=>{ if(r==='granted'){ctlMode='tilt';showCalib();} else toast('Permissão negada'); });
+    } else if(D){ ctlMode='tilt'; showCalib(); } else toast('Sem giroscópio');
+  } else { ctlMode='botoes'; gyroBase=null; applyCtl(); }
+};
+function showCalib(){ document.getElementById('mCalib').style.display='flex'; }
+document.getElementById('bCalib').onclick=()=>{ gyroBase=0; gyroBase=0;
+  // captura o ângulo atual como centro na próxima leitura:
+  const h=e=>{ if(e.gamma!=null){ gyroBase=e.gamma; removeEventListener('deviceorientation',h);} };
+  addEventListener('deviceorientation',h);
+  document.getElementById('mCalib').style.display='none'; applyCtl(); };
+document.getElementById('bCalibVoltar').onclick=()=>{ ctlMode='botoes';
+  document.getElementById('mCalib').style.display='none'; applyCtl(); };
+function applyCtl(){
+  const tilt = ctlMode==='tilt';
+  // acelerador e freio ficam SEMPRE na tela; so as setas somem no modo inclinacao
+  document.getElementById('cont').style.display='block';
+  document.getElementById('bEsq').style.display = tilt?'none':'flex';
+  document.getElementById('bDir').style.display = tilt?'none':'flex';
+  document.getElementById('btnCtl').textContent = tilt?'🕹️ botões':'📐 inclinação';
+}
+
+/* =====================================================================
+   5. RENDER
+   ===================================================================== */
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+function resize(){ cv.width=innerWidth*devicePixelRatio; cv.height=innerHeight*devicePixelRatio; }
+addEventListener('resize',resize); resize();
+function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function drawTrack(T){
+  ctx.lineJoin='round';ctx.lineCap='round';
+  ctx.strokeStyle='#20242e';ctx.lineWidth=T.w+14; strokePath(T.p,true);
+  ctx.strokeStyle='#3a4050';ctx.lineWidth=T.w; strokePath(T.p,true);
+  if(T.atalho){ctx.strokeStyle='#5d4c33';ctx.lineWidth=T.atalho.w;strokePath(T.atalho.p,false);}
+  ctx.strokeStyle='#ffffff22';ctx.lineWidth=2;ctx.setLineDash([14,18]);strokePath(T.p,true);ctx.setLineDash([]);
+  // linha de chegada
+  const [sx,sy]=T.cps[0];
+  ctx.save();ctx.translate(sx,sy);ctx.strokeStyle='#fff';ctx.lineWidth=8;
+  ctx.beginPath();ctx.moveTo(0,-T.w/2);ctx.lineTo(0,T.w/2);ctx.stroke();ctx.restore();
+}
+function strokePath(p,fechar){ctx.beginPath();ctx.moveTo(p[0][0],p[0][1]);
+  for(let i=1;i<p.length;i++)ctx.lineTo(p[i][0],p[i][1]); if(fechar)ctx.closePath(); ctx.stroke();}
+function drawCar(p,h,name,me){
+  const C=CARS[p.car];
+  ctx.save();ctx.translate(p.x,p.y);ctx.rotate(h);
+  if(p.off)ctx.globalAlpha=.4;
+  ctx.fillStyle='#0007';ctx.beginPath();ctx.ellipse(0,3,C.r+4,C.r,0,0,7);ctx.fill();
+  ctx.fillStyle=C.cor; rr(-C.r,-C.r*0.62,C.r*2,C.r*1.24,5); ctx.fill();
+  ctx.fillStyle='#0009'; rr(-C.r*0.2,-C.r*0.5,C.r*0.9,C.r,3); ctx.fill();   // cabine
+  ctx.fillStyle='#fffa'; ctx.fillRect(C.r*0.55,-C.r*0.62,4,C.r*1.24);        // faróis
+  if(p.car===0||p.car===3){ctx.fillStyle=C.cor;ctx.fillRect(-C.r-3,-C.r*0.7,3,C.r*1.4);} // asa
+  if(p.car===4){ctx.fillStyle='#fff';ctx.fillRect(-C.r,- 2,C.r*2,4);}
+  ctx.restore();
+  ctx.fillStyle=me?'#7dff8a':'#fff';ctx.font='bold 11px system-ui';ctx.textAlign='center';
+  ctx.fillText(name+(p.off?' (off)':''),p.x,p.y-C.r-8);
+}
+function draw(dt){
+  ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  ctx.fillStyle='#12141c';ctx.fillRect(0,0,innerWidth,innerHeight);
+  const T=TRACKS[trackIdx];
+  // câmera segue meu carro (suavizada)
+  selfR.x+=(pred.x-selfR.x)*Math.min(1,dt*14);
+  selfR.y+=(pred.y-selfR.y)*Math.min(1,dt*14);
+  selfR.h=lerpAng(selfR.h,pred.h,Math.min(1,dt*14));
+  const z=Math.min(innerWidth,innerHeight)/520;
+  ctx.save();ctx.translate(innerWidth/2,innerHeight*0.62);ctx.scale(z,z);ctx.translate(-selfR.x,-selfR.y);
+  drawTrack(T);
+  for(const c of stateCars){ if(c.id===myId)continue;
+    const p=rivalPose(c.id); if(p)drawCar(p,p.h,p.name,false); }
+  drawCar({x:selfR.x,y:selfR.y,car:pred.car,off:false},selfR.h,(room&&room.meName)||'você',true);
+  ctx.restore();
+}
+
+/* =====================================================================
+   6. UI
+   ===================================================================== */
+const $=id=>document.getElementById(id);
+function toast(t){const e=$('toast');e.textContent=t;e.style.display='block';
+  setTimeout(()=>e.style.display='none',2200);}
+$('bCriar').onclick=()=>ws.send(JSON.stringify({t:'create',name:$('inNome').value||'Piloto'}));
+$('bEntrar').onclick=()=>ws.send(JSON.stringify({t:'join',code:$('inCode').value.trim(),name:$('inNome').value||'Piloto'}));
+function renderLobby(){
+  if(!room)return;
+  $('mMenu').style.display='none'; $('mLobby').style.display='flex';
+  $('lbCode').textContent=room.code;
+  $('lbJogs').innerHTML=room.players.map(p=>`<div class="jog"><span>${p.name}${p.id===room.you?' (você)':''}${p.host?' 👑':''}</span><span>${CARS[p.car].n}</span></div>`).join('');
+  $('lbCars').innerHTML=CARS.map((c,i)=>`<button class="${i===room.myCar?'on':''}" data-c="${i}">${c.n}<br><small>vel ${c.max} · ader ${c.grip}</small></button>`).join('');
+  $('lbCars').querySelectorAll('button').forEach(b=>b.onclick=()=>ws.send(JSON.stringify({t:'car',car:+b.dataset.c})));
+  const host=room.host;
+  $('lbHostArea').style.display=host?'block':'none';
+  $('lbDica').textContent=host?'':'O anfitrião escolhe a pista e inicia.';
+  if(host){
+    $('lbTrks').innerHTML=TRACKS.map((t,i)=>`<button class="${i===room.track?'on':''}" data-t="${i}">${t.n}</button>`).join('');
+    $('lbTrks').querySelectorAll('button').forEach(b=>b.onclick=()=>ws.send(JSON.stringify({t:'track',track:+b.dataset.t})));
+    $('bStart').disabled=room.players.length<2;
+  }
+}
+$('bStart').onclick=()=>ws.send(JSON.stringify({t:'start'}));
+$('bAgain').onclick=()=>{ $('res').style.display='none'; ws.send(JSON.stringify({t:'rematch'})); toast('Aguardando todos confirmarem…'); };
+function renderResults(){
+  if($('res').style.display==='flex'&&!myFin)return;
+  $('res').style.display='flex';
+  const map={}; stateCars.forEach(c=>map[c.id]=c);
+  $('resTab').innerHTML=stateOrder.map((id,i)=>{const c=map[id];if(!c)return'';
+    const t=c.finT?((c.finT-raceStart)/1000).toFixed(1)+'s':'—';
+    return `<tr><td>${i+1}º</td><td>${c.name}${c.id===myId?' (você)':''}</td><td>${t}</td></tr>`;}).join('');
+  $('resDica').textContent='A corrida recomeça quando todos tocarem em “Correr de novo”.';
+}
+function hud(){
+  if(phase!=='race'&&phase!=='countdown')return;
+  const pos=stateOrder.indexOf(myId)+1;
+  $('hPos').textContent=pos?pos+'º':'–';
+  const me=stateCars.find(c=>c.id===myId);
+  $('hLap').textContent='· volta '+Math.min(LAPS,me?me.lap:1)+'/'+LAPS;
+  $('hVel').textContent=Math.round(Math.hypot(pred.vx,pred.vy)*0.35)+' km/h';
+  if(phase==='race') $('hTmp').textContent='· '+(((srvNow()-raceStart)/1000)|0)+'s';
+  const cd=$('count');
+  if(phase==='countdown'){const r=Math.ceil((countEnd-srvNow())/1000);
+    cd.style.display='flex';cd.textContent=r>0?r:'';}
+  else if(srvNow()-raceStart<900){cd.style.display='flex';cd.textContent='GO!';}
+  else cd.style.display='none';
+}
+
+/* =====================================================================
+   7. LOOP — física em passo fixo, independente do frame rate
+   ===================================================================== */
+let acc=0,last=performance.now(),sendAcc=0;
+function frame(now){
+  requestAnimationFrame(frame);
+  let dt=(now-last)/1000; last=now; if(dt>0.25)dt=0.25;
+  acc+=dt;
+  while(acc>=STEP){
+    if(phase==='race'){ stepCar(pred,rawInput(),STEP,surfaceAt(trackIdx,pred.x,pred.y));
+      sendAcc+=STEP;
+      if(sendAcc>=1/SEND_HZ){ sendAcc=0; sendInput(rawInput()); } }
+    acc-=STEP;
+  }
+  draw(dt); hud();
+}
+ws.onopen=()=>requestAnimationFrame(frame);
+applyCtl();
+</script>
+</body>
+</html>
