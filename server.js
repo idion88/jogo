@@ -199,7 +199,7 @@ const wss=new WebSocket.Server({server:srv});
 wss.on('connection',ws=>{
   const p={ws,id:Math.random().toString(36).slice(2,8),name:'',car:1,room:null,
     host:false,connected:true,offline:false,x:0,y:0,h:0,vx:0,vy:0,
-    lap:1,nextCp=1,fin:false,finT:0,input:{th:0,br:0,st:0},lastSeq:0};
+    lap:1,nextCp:1,fin:false,finT:0,input:{th:0,br:0,st:0},lastSeq:0};
   ws.on('message',d=>{
     const m=JSON.parse(d);
     if(m.t==='create'){p.name=String(m.name).slice(0,12);newRoom(p);sendRoom(p);}
