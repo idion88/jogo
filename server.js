@@ -1,22 +1,21 @@
-/* server.js — servidor AUTORITÁRIO: posições, colisões, voltas e ordem
-   são decididos aqui. Cliente só prediz e interpola. */
+/* server.js — servidor AUTORITÁRIO */
 const http=require('http'),fs=require('fs'),path=require('path');
 const WebSocket=require('ws');
 
 /* ---- constantes (espelho do index.html) ---- */
 const TICK=50, LAPS=3, E=0.35;
 const CARS=[
- {max:640,acc:300,grip:5.5,brk:420,turn:2.6,mass:1.00,r:15},
- {max:560,acc:340,grip:7.0,brk:520,turn:2.9,mass:1.05,r:15},
- {max:500,acc:430,grip:8.5,brk:560,turn:3.4,mass:0.90,r:14},
- {max:540,acc:260,grip:6.5,brk:480,turn:2.7,mass:1.60,r:18},
- {max:520,acc:360,grip:10 ,brk:600,turn:3.2,mass:0.95,r:15},
+ {max:640,acc:380,grip:5.5,brk:420,turn:2.6,mass:1.00,r:15},
+ {max:560,acc:420,grip:7.0,brk:520,turn:2.9,mass:1.05,r:15},
+ {max:500,acc:520,grip:8.5,brk:560,turn:3.4,mass:0.90,r:14},
+ {max:540,acc:320,grip:6.5,brk:480,turn:2.7,mass:1.60,r:18},
+ {max:520,acc:440,grip:10 ,brk:600,turn:3.2,mass:0.95,r:15},
 ];
 const TRACKS=[
  {w:90,p:[[150,150],[1450,150],[1550,250],[1550,750],[1450,850],[150,850],[50,750],[50,250]],
   cps:[[800,150],[1550,500],[800,850],[50,500]]},
  {w:56,p:[[150,150],[650,150],[750,250],[650,350],[350,350],[250,450],[350,550],[750,550],[850,650],[750,750],[150,750],[50,650],[50,250]],
-  cps:[[550,150],[300,400],[800,600],[100,500]]},
+  cps:[[700,200],[300,400],[800,600],[100,500]]},
  {w:70,p:[[150,150],[1450,150],[1550,250],[1550,750],[1450,850],[900,850],[800,750],[700,650],[600,750],[500,850],[150,850],[50,750],[50,250]],
   cps:[[800,150],[1550,500],[900,850],[500,850],[50,500]],
   atalho:{w:30,p:[[900,850],[700,800],[500,850]]}},
@@ -27,10 +26,10 @@ function stepCar(c,inp,dt,sup){
   let vf=c.vx*fX+c.vy*fY, vl=c.vx*rX+c.vy*rY;
   if(inp.th>0)vf+=C.acc*inp.th*dt;
   if(inp.br>0)vf-=C.brk*inp.br*dt;
-  vf-=vf*0.6*dt;
+  vf-=vf*(0.4+sup.drag)*dt;  // arrasto: base 0.4 + extra fora da pista
   vl*=Math.max(0,1-C.grip*sup.grip*dt);
   vf=Math.max(-C.max*0.35,Math.min(C.max*sup.cap,vf));
-  const eff=Math.min(1,Math.abs(vf)/140)*(vf<0?-1:1);
+  const eff=Math.min(1,Math.abs(vf)/60)*(vf<0?-1:1);  // limiar reduzido: 60
   c.h+=inp.st*C.turn*eff*dt;
   const nX=Math.cos(c.h),nY=Math.sin(c.h);
   c.vx=nX*vf+(-nY)*vl; c.vy=nY*vf+nX*vl;
@@ -43,11 +42,11 @@ function surfaceAt(ti,x,y){
   const T=TRACKS[ti];let d=1e9;
   for(let i=0;i<T.p.length;i++){const a=T.p[i],b=T.p[(i+1)%T.p.length];
     d=Math.min(d,distSeg(x,y,a[0],a[1],b[0],b[1]));}
-  if(d<=T.w/2)return{grip:1,cap:1};
+  if(d<=T.w/2)return{grip:1,cap:1,drag:0,onTrack:true};
   if(T.atalho){let ds=1e9;const S=T.atalho.p;
     for(let i=0;i<S.length-1;i++)ds=Math.min(ds,distSeg(x,y,S[i][0],S[i][1],S[i+1][0],S[i+1][1]));
-    if(ds<=T.atalho.w/2)return{grip:.45,cap:1};}
-  return{grip:.7,cap:.45};
+    if(ds<=T.atalho.w/2)return{grip:.45,cap:1,drag:0,onTrack:true};}
+  return{grip:.4,cap:.3,drag:3.5,onTrack:false};  // FORA DA PISTA: punição severa
 }
 
 /* ---- salas ---- */
@@ -84,13 +83,8 @@ setInterval(()=>{
     if(r.phase==='lobby')continue;
     if(r.phase==='countdown'&&now>=r.countEnd){r.phase='race';r.raceStart=now;}
     if(r.phase==='race'||r.phase==='finished'){
-      // 1) física de cada carro (desconectado = input zero, não derruba a partida)
-      for(const p of r.players){
-        let rest=TICK/1000;
-        while(rest>1e-6){ const h=Math.min(1/60,rest);
-          stepCar(p,p.input,h,surfaceAt(r.track,p.x,p.y)); rest-=h; }
-      }
-      // 2) colisões carro-carro (impulso com massa; trata colisão frontal)
+      for(const p of r.players)
+        stepCar(p,p.input,TICK/1000,surfaceAt(r.track,p.x,p.y));
       for(let i=0;i<r.players.length;i++)for(let j=i+1;j<r.players.length;j++){
         const a=r.players[i],b=r.players[j];
         const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),R=CARS[a.car].r+CARS[b.car].r;
@@ -103,7 +97,6 @@ setInterval(()=>{
             a.vx-=nx*jI*ia;a.vy-=ny*jI*ia;b.vx+=nx*jI*ib;b.vy+=ny*jI*ib;}
         }
       }
-      // 3) checkpoints e voltas (cp 0 = linha de chegada)
       const T=TRACKS[r.track];
       for(const p of r.players){
         if(p.fin)continue;
@@ -116,7 +109,6 @@ setInterval(()=>{
       }
       if(r.players.every(p=>p.fin||p.offline))r.phase='finished';
     }
-    // 4) classificação: terminados por tempo; ativos por volta+cp+distância
     const dist=p=>{const a=(p.nextCp<TRACKS[r.track].cps.length)?TRACKS[r.track].cps[p.nextCp]:TRACKS[r.track].cps[0];
       return Math.hypot(p.x-a[0],p.y-a[1]);};
     r.order=r.players.slice().sort((a,b)=>{
@@ -126,7 +118,6 @@ setInterval(()=>{
       if(b.nextCp!==a.nextCp)return b.nextCp-a.nextCp;
       return dist(a)-dist(b);
     }).map(p=>p.id);
-    // 5) snapshot p/ clientes
     const msg=JSON.stringify({t:'state',sT:now,phase:r.phase,countEnd:r.countEnd,
       raceStart:r.raceStart,order:r.order,
       lastSeqs:Object.fromEntries(r.players.map(p=>[p.id,p.lastSeq])),
@@ -167,7 +158,7 @@ wss.on('connection',ws=>{
       const todos=p.room.players.filter(q=>q.connected).every(q=>p.room.rematch.has(q.id));
       if(todos){grid(p.room);p.room.phase='countdown';p.room.countEnd=Date.now()+3000;p.room.rematch.clear();}
     }
-    else if(m.t==='input'&&p.room){ // guarda só o input mais recente + seq p/ reconciliação do cliente
+    else if(m.t==='input'&&p.room){
       p.input={th:+m.th||0,br:+m.br||0,st:Math.max(-1,Math.min(1,+m.st||0))};
       p.lastSeq=m.seq;
     }
@@ -175,14 +166,10 @@ wss.on('connection',ws=>{
   ws.on('close',()=>{
     p.connected=false;
     if(p.room){
-      if(p.room.phase==='lobby'){
-        const r=p.room; r.players=r.players.filter(q=>q!==p);
-        if(!r.players.length){rooms.delete(r.code);}          // sala vazia: descarta
-        else{ if(p.host){r.players[0].host=true;}             // passa o comando p/ o proximo
-              bcast(r);} }
-      else{p.offline=true;p.input={th:0,br:0,st:0};} // carro vira "fantasma", partida segue
+      if(p.room.phase==='lobby'){p.room.players=p.room.players.filter(q=>q!==p);bcast(p.room);}
+      else{p.offline=true;p.input={th:0,br:0,st:0};}
     }
   });
 });
-const PORT=process.env.PORT||8080;
-srv.listen(PORT,()=>console.log('Corrida no ar na porta '+PORT));
+const PORT = process.env.PORT || 8080;
+srv.listen(PORT,()=>console.log('Corrida no ar: http://localhost:'+PORT));
