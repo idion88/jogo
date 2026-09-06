@@ -304,6 +304,9 @@ function onState(m){
   }
   if(phase==='finished'||myFin) renderResults();
   document.getElementById('mLobby').style.display = phase==='lobby'?'flex':'none';
+  const emJogo = (phase==='race'||phase==='countdown');
+  document.getElementById('hud').style.display = emJogo?'block':'none';
+  document.getElementById('btnCtl').style.display = emJogo?'block':'none';
 }
 const srvNow=()=>performance.now()-srvOffset;
 function rivalPose(id){
