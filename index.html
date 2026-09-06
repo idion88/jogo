@@ -7,24 +7,73 @@
 <style>
   html,body{margin:0;height:100%;overflow:hidden;background:#12141c;font-family:system-ui,Arial,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none}
   canvas{display:block}
-  .tela{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(10,12,18,.92);z-index:20}
-  .card{background:#1c2030;border:1px solid #2c3350;border-radius:14px;padding:18px;width:min(92vw,420px);color:#e8ecff;max-height:92vh;overflow:auto}
-  h1{font-size:20px;margin:0 0 10px;text-align:center}
-  h2{font-size:14px;margin:12px 0 6px;color:#9fb0ff}
-  input,select{width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid #3a4270;background:#141828;color:#e8ecff;font-size:15px}
-  .btn{display:block;width:100%;margin-top:10px;padding:12px;border:none;border-radius:10px;background:#4c6fff;color:#fff;font-size:16px;font-weight:700}
-  .btn:disabled{opacity:.4}
+  
+  /* ========== TELAS (LOBBY, MENU, ETC) ========== */
+  .tela{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(10,12,18,.92);z-index:20;padding:10px}
+  .card{
+    background:#1c2030;border:1px solid #2c3350;border-radius:14px;
+    padding:14px;width:min(94vw,520px);color:#e8ecff;
+    max-height:92dvh;overflow-y:auto;display:flex;flex-direction:column;gap:10px;
+  }
+  .card h1{font-size:18px;margin:0;text-align:center}
+  .card h2{font-size:12px;margin:0;color:#9fb0ff;text-transform:uppercase;letter-spacing:.05em}
+  input,select{width:100%;box-sizing:border-box;padding:8px;border-radius:8px;border:1px solid #3a4270;background:#141828;color:#e8ecff;font-size:14px}
+  .btn{display:block;width:100%;padding:10px;border:none;border-radius:10px;background:#4c6fff;color:#fff;font-size:14px;font-weight:700;cursor:pointer}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
   .btn.sec{background:#2a3050}
+  .btn.copy{background:#2ecc71;padding:6px 12px;font-size:12px;white-space:nowrap}
+  .btn.copy.ok{background:#27ae60}
   .linha{display:flex;gap:8px}.linha>*{flex:1}
-  .jog{display:flex;justify-content:space-between;padding:6px 8px;background:#141828;border-radius:8px;margin-top:6px;font-size:14px}
-  .carsel{display:flex;gap:6px;flex-wrap:wrap}
-  .carsel button{flex:1 1 30%;padding:8px 4px;border-radius:8px;border:2px solid transparent;background:#141828;color:#e8ecff;font-size:11px}
+  
+  /* ========== LOBBY ========== */
+  #mLobby .card{max-height:95dvh;gap:8px}
+  .lb-head{
+    position:sticky;top:-14px;background:#1c2030;margin:-14px -14px 0;padding:12px 14px;
+    border-bottom:1px solid #2c3350;z-index:2;
+  }
+  .lb-code-box{
+    display:flex;align-items:center;gap:8px;
+    background:#141828;border:2px solid #4c6fff;border-radius:10px;padding:10px 12px;margin-top:6px;
+  }
+  .lb-code-box .code{
+    flex:1;font-size:28px;font-weight:900;letter-spacing:.15em;color:#ffd54c;
+    font-family:'Courier New',monospace;text-align:center;
+  }
+  .lb-code-box .btn.copy{flex:0 0 auto}
+  
+  /* Grid de duas colunas para aproveitar orientação horizontal */
+  .lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-height:420px){
+    .lb-grid{grid-template-columns:1fr 1fr;gap:8px}
+    .card{padding:10px;gap:6px}
+    .lb-head{margin:-10px -10px 0;padding:8px 10px}
+    .lb-code-box .code{font-size:22px}
+    .lb-code-box{padding:6px 10px;margin-top:4px}
+    .card h1{font-size:14px}
+    .card h2{font-size:11px}
+  }
+  @media(max-height:360px){
+    .lb-code-box .code{font-size:18px}
+    .btn{padding:8px;font-size:13px}
+    .jog{padding:4px 6px;font-size:12px}
+    .carsel button,.trksel button{padding:6px 2px;font-size:10px}
+  }
+  
+  .jog{display:flex;justify-content:space-between;padding:5px 8px;background:#141828;border-radius:8px;font-size:13px}
+  .jog-list{display:flex;flex-direction:column;gap:4px;max-height:120px;overflow-y:auto}
+  .carsel{display:flex;gap:4px;flex-wrap:wrap}
+  .carsel button{flex:1 1 30%;padding:6px 4px;border-radius:8px;border:2px solid transparent;background:#141828;color:#e8ecff;font-size:10px;cursor:pointer}
   .carsel button.on{border-color:#4c6fff}
-  .trksel button{width:100%;margin-top:6px;padding:9px;border-radius:8px;border:2px solid transparent;background:#141828;color:#e8ecff}
+  .trksel{display:flex;flex-direction:column;gap:4px}
+  .trksel button{padding:7px;border-radius:8px;border:2px solid transparent;background:#141828;color:#e8ecff;font-size:12px;cursor:pointer}
   .trksel button.on{border-color:#4c6fff}
+  .lb-col{display:flex;flex-direction:column;gap:6px;min-width:0}
+  .lb-col h2{margin:0}
+  
+  /* ========== HUD E CONTROLES ========== */
   #hud{position:fixed;top:8px;left:10px;color:#fff;font-size:14px;z-index:5;text-shadow:0 1px 3px #000;pointer-events:none}
   #hud b{font-size:18px}
-  #btnCtl{position:fixed;top:8px;right:10px;z-index:6;background:#2a3050cc;border:none;color:#fff;border-radius:8px;padding:6px 10px;font-size:14px}
+  #btnCtl{position:fixed;top:8px;right:10px;z-index:6;background:#2a3050cc;border:none;color:#fff;border-radius:8px;padding:6px 10px;font-size:14px;cursor:pointer}
   #cont{position:fixed;inset:0;z-index:4;pointer-events:none}
   .cb{position:absolute;bottom:20px;width:76px;height:76px;border-radius:50%;background:#ffffff22;border:2px solid #ffffff44;color:#fff;font-size:26px;display:flex;align-items:center;justify-content:center;pointer-events:auto;touch-action:none}
   .cb:active,.cb.on{background:#4c6fff88}
@@ -32,8 +81,12 @@
   #count{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font-size:90px;font-weight:900;color:#ffd54c;text-shadow:0 2px 12px #000;z-index:8;pointer-events:none}
   #toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#0009;color:#fff;padding:8px 14px;border-radius:10px;z-index:30;font-size:13px;display:none}
   .off{opacity:.45}
-  #res table{width:100%;font-size:14px;border-collapse:collapse}
-  #res td{padding:5px 4px;border-bottom:1px solid #2c3350}
+  
+  /* ========== RESULTADO ========== */
+  #res table{width:100%;font-size:13px;border-collapse:collapse}
+  #res td{padding:4px;border-bottom:1px solid #2c3350}
+  
+  /* ========== TELA DE ORIENTAÇÃO ========== */
   #rotScreen{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:100;display:none;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-size:18px;text-align:center;padding:20px}
   #rotScreen .icon{font-size:80px;margin-bottom:20px;animation:rotate 2s infinite}
   @keyframes rotate{0%,100%{transform:rotate(0deg)}50%{transform:rotate(90deg)}}
@@ -60,14 +113,12 @@
   <div>Gire o aparelho para a horizontal</div>
 </div>
 
-<!-- MENU -->
+<!-- MENU INICIAL -->
 <div class="tela" id="mMenu"><div class="card">
   <h1>🏁 Turbo Sala</h1>
   <input id="inNome" placeholder="Seu nome" maxlength="12">
-  <div class="linha" style="margin-top:10px">
-    <button class="btn" id="bCriar">Criar sala</button>
-  </div>
-  <div class="linha" style="margin-top:8px">
+  <button class="btn" id="bCriar">Criar sala</button>
+  <div class="linha">
     <input id="inCode" placeholder="Código da sala" style="text-transform:uppercase">
     <button class="btn sec" id="bEntrar">Entrar</button>
   </div>
@@ -75,20 +126,37 @@
 
 <!-- LOBBY -->
 <div class="tela" id="mLobby" style="display:none"><div class="card">
-  <h1>Sala <span id="lbCode"></span></h1>
-  <div id="lbJogs"></div>
-  <h2>Seu carro</h2><div class="carsel" id="lbCars"></div>
-  <div id="lbHostArea">
-    <h2>Pista</h2><div class="trksel" id="lbTrks"></div>
-    <button class="btn" id="bStart">Iniciar corrida (mín. 2)</button>
+  <div class="lb-head">
+    <h1 style="font-size:14px;margin:0">Sala criada!</h1>
+    <div class="lb-code-box">
+      <span class="code" id="lbCode">----</span>
+      <button class="btn copy" id="bCopy">📋 Copiar</button>
+    </div>
   </div>
-  <p id="lbDica" style="font-size:12px;color:#8fa0d0"></p>
+  
+  <div class="lb-grid">
+    <div class="lb-col">
+      <h2>Jogadores</h2>
+      <div class="jog-list" id="lbJogs"></div>
+    </div>
+    <div class="lb-col">
+      <h2>Seu carro</h2>
+      <div class="carsel" id="lbCars"></div>
+      <div id="lbHostArea" style="display:none">
+        <h2 style="margin-top:8px">Pista</h2>
+        <div class="trksel" id="lbTrks"></div>
+        <button class="btn" id="bStart" style="margin-top:8px">Iniciar corrida</button>
+      </div>
+    </div>
+  </div>
+  
+  <p id="lbDica" style="font-size:11px;color:#8fa0d0;margin:0;text-align:center"></p>
 </div></div>
 
 <!-- CALIBRAGEM -->
 <div class="tela" id="mCalib" style="display:none"><div class="card">
   <h1>📐 Inclinação</h1>
-  <p style="font-size:14px">Segure o aparelho na posição em que vai jogar e toque no botão. O giroscópio do iOS só funciona em página HTTPS.</p>
+  <p style="font-size:13px">Segure o aparelho na posição em que vai jogar e toque no botão.</p>
   <button class="btn" id="bCalib">Calibrar centro</button>
   <button class="btn sec" id="bCalibVoltar">Usar botões</button>
 </div></div>
@@ -98,7 +166,7 @@
   <h1>🏁 Classificação</h1>
   <table id="resTab"></table>
   <button class="btn" id="bAgain">Correr de novo</button>
-  <p id="resDica" style="font-size:12px;color:#8fa0d0;text-align:center"></p>
+  <p id="resDica" style="font-size:11px;color:#8fa0d0;text-align:center;margin:0">A corrida recomeça quando todos tocarem em "Correr de novo".</p>
 </div></div>
 
 <!-- CONEXÃO PERDIDA -->
@@ -110,11 +178,11 @@
 /* =====================================================================
    1. CONFIG — constantes de ajuste (espelho do server.js; mantenha iguais!)
    ===================================================================== */
-const STEP = 1/60;            // passo fixo da física do cliente
-const SEND_HZ = 30;           // taxa de envio de input p/ servidor
-const INTERP_MS = 100;        // atraso de interpolação dos rivais
-const LAPS = 3;               // voltas da corrida
-const WORLD_W = 1000;         // largura alvo do mundo visível (zoom adaptativo)
+const STEP = 1/60;
+const SEND_HZ = 30;
+const INTERP_MS = 100;
+const LAPS = 3;
+const WORLD_W = 1000;
 
 const CARS = [
  {n:'Velocista',  max:640, acc:380, grip:5.5, brk:420, turn:2.6, mass:1.00, cor:'#ff4757', r:15},
@@ -137,7 +205,7 @@ const TRACKS = [
 ];
 
 /* =====================================================================
-   2. FÍSICA — idêntica à do servidor (predição precisa coincidir)
+   2. FÍSICA
    ===================================================================== */
 function stepCar(c, inp, dt, sup){
   const C = CARS[c.car];
@@ -145,11 +213,10 @@ function stepCar(c, inp, dt, sup){
   let vf=c.vx*fX+c.vy*fY, vl=c.vx*rX+c.vy*rY;
   if(inp.th>0) vf+=C.acc*inp.th*dt;
   if(inp.br>0) vf-=C.brk*inp.br*dt;
-  // arrasto: base 0.4 em pista, muito maior fora (sup.drag extra)
   vf-=vf*(0.4+sup.drag)*dt;
   vl*=Math.max(0,1-C.grip*sup.grip*dt);
   vf=Math.max(-C.max*0.35,Math.min(C.max*sup.cap,vf));
-  const eff=Math.min(1,Math.abs(vf)/60)*(vf<0?-1:1);  // limiar reduzido: 60
+  const eff=Math.min(1,Math.abs(vf)/60)*(vf<0?-1:1);
   c.h+=inp.st*C.turn*eff*dt;
   const nX=Math.cos(c.h), nY=Math.sin(c.h);
   c.vx=nX*vf+(-nY)*vl; c.vy=nY*vf+nX*vl;
@@ -168,7 +235,6 @@ function surfaceAt(ti,x,y){
   if(T.atalho){let ds=1e9;const S=T.atalho.p;
     for(let i=0;i<S.length-1;i++)ds=Math.min(ds,distSeg(x,y,S[i][0],S[i][1],S[i+1][0],S[i+1][1]));
     if(ds<=T.atalho.w/2) return {grip:.45,cap:1,drag:0,onTrack:true};}
-  // FORA DA PISTA: punição severa
   return {grip:.4,cap:.3,drag:3.5,onTrack:false};
 }
 const lerpAng=(a,b,t)=>{let d=(b-a+Math.PI*3)%(Math.PI*2)-Math.PI;return a+d*t;};
@@ -278,7 +344,7 @@ function applyCtl(){
 }
 
 /* =====================================================================
-   5. RENDER — zoom adaptativo, antecipação, minimapa
+   5. RENDER
    ===================================================================== */
 const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
 let camZoom=1, camW=1000, camH=600;
@@ -286,10 +352,8 @@ let camZoom=1, camW=1000, camH=600;
 function resize(){
   cv.width=innerWidth*devicePixelRatio;
   cv.height=innerHeight*devicePixelRatio;
-  // ZOOM ADAPTATIVO: manter ~WORLD_W unidades visíveis
   camW = innerWidth; camH = innerHeight;
   camZoom = Math.min(camW/WORLD_W, camH/600);
-  // Orientação
   checkOrientation();
 }
 function checkOrientation(){
@@ -331,7 +395,6 @@ function drawCar(p,h,name,me){
   ctx.fillText(name+(p.off?' (off)':''),p.x,p.y-C.r-8);
 }
 
-/* Efeito visual de fora de pista: partículas de terra */
 function spawnDirt(x,y){
   for(let i=0;i<3;i++){
     particles.push({x,y,vx:(Math.random()-.5)*80,vy:(Math.random()-.5)*80,life:1});
@@ -351,11 +414,9 @@ function drawParticles(){
   }
 }
 
-/* Minimapa */
 function drawMinimap(){
   const T=TRACKS[trackIdx];
   const mw=120, mh=90, mx=innerWidth-mw-12, my=50;
-  // calcular bounds da pista
   let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
   for(const [x,y] of T.p){minX=Math.min(minX,x);minY=Math.min(minY,y);maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);}
   const pw=maxX-minX, ph=maxY-minY;
@@ -364,15 +425,12 @@ function drawMinimap(){
   ctx.save();
   ctx.fillStyle='#00000088'; rr(mx,my,mw,mh,8); ctx.fill();
   ctx.translate(mx+5,my+5);
-  // pista
   ctx.strokeStyle='#ffffff44';ctx.lineWidth=3;ctx.lineJoin='round';
   ctx.beginPath();ctx.moveTo((T.p[0][0]-minX)*scale,(T.p[0][1]-minY)*scale);
   for(let i=1;i<T.p.length;i++)ctx.lineTo((T.p[i][0]-minX)*scale,(T.p[i][1]-minY)*scale);
   ctx.closePath();ctx.stroke();
-  // linha de chegada
   const [sx,sy]=T.cps[0];
   ctx.fillStyle='#fff';ctx.fillRect((sx-minX)*scale-2,(sy-minY)*scale-2,4,4);
-  // carros
   for(const c of stateCars){
     const px=(c.x-minX)*scale, py=(c.y-minY)*scale;
     ctx.fillStyle = c.id===myId?'#7dff8a':CARS[c.car].cor;
@@ -387,7 +445,6 @@ function draw(dt){
   ctx.fillStyle='#12141c';ctx.fillRect(0,0,innerWidth,innerHeight);
   const T=TRACKS[trackIdx];
   
-  // câmera com ANTECIPAÇÃO: deslocar na direção da velocidade
   const vel=Math.hypot(pred.vx,pred.vy);
   const maxOffset=120, lookAhead=Math.min(vel/500,1)*maxOffset;
   const tX=pred.x+Math.cos(pred.h)*lookAhead;
@@ -396,7 +453,6 @@ function draw(dt){
   selfR.y+=(tY-selfR.y)*Math.min(1,dt*10);
   selfR.h=lerpAng(selfR.h,pred.h,Math.min(1,dt*10));
   
-  // shake se fora da pista
   const shakeX=offTrackShake*(Math.random()-.5)*2;
   const shakeY=offTrackShake*(Math.random()-.5)*2;
   
@@ -412,10 +468,8 @@ function draw(dt){
   drawCar({x:selfR.x,y:selfR.y,car:pred.car,off:false},selfR.h,(room&&room.meName)||'você',true);
   ctx.restore();
   
-  // minimapa
   if(phase==='race'||phase==='countdown') drawMinimap();
   
-  // atualizar shake
   if(offTrackShake>0) offTrackShake-=dt*8;
   if(offTrackShake<0) offTrackShake=0;
 }
@@ -426,26 +480,51 @@ function draw(dt){
 const $=id=>document.getElementById(id);
 function toast(t){const e=$('toast');e.textContent=t;e.style.display='block';
   setTimeout(()=>e.style.display='none',2200);}
+
 $('bCriar').onclick=()=>ws.send(JSON.stringify({t:'create',name:$('inNome').value||'Piloto'}));
 $('bEntrar').onclick=()=>ws.send(JSON.stringify({t:'join',code:$('inCode').value.trim(),name:$('inNome').value||'Piloto'}));
+
 function renderLobby(){
   if(!room)return;
   $('mMenu').style.display='none'; $('mLobby').style.display='flex';
   $('lbCode').textContent=room.code;
-  $('lbJogs').innerHTML=room.players.map(p=>`<div class="jog"><span>${p.name}${p.id===room.you?' (você)':''}${p.host?' 👑':''}</span><span>${CARS[p.car].n}</span></div>`).join('');
-  $('lbCars').innerHTML=CARS.map((c,i)=>`<button class="${i===room.myCar?'on':''}" data-c="${i}">${c.n}<br><small>vel ${c.max} · ader ${c.grip}</small></button>`).join('');
+  
+  // Lista de jogadores
+  $('lbJogs').innerHTML=room.players.map(p=>`<div class="jog"><span>${p.name}${p.id===room.you?' (você)':''}${p.host?' 👑':''}</span><span style="color:#9fb0ff">${CARS[p.car].n}</span></div>`).join('');
+  
+  // Seleção de carro
+  $('lbCars').innerHTML=CARS.map((c,i)=>`<button class="${i===room.myCar?'on':''}" data-c="${i}">${c.n}<br><small style="font-size:9px;color:#8fa0d0">vel ${c.max} · ader ${c.grip}</small></button>`).join('');
   $('lbCars').querySelectorAll('button').forEach(b=>b.onclick=()=>ws.send(JSON.stringify({t:'car',car:+b.dataset.c})));
+  
   const host=room.host;
   $('lbHostArea').style.display=host?'block':'none';
   $('lbDica').textContent=host?'':'O anfitrião escolhe a pista e inicia.';
+  
   if(host){
     $('lbTrks').innerHTML=TRACKS.map((t,i)=>`<button class="${i===room.track?'on':''}" data-t="${i}">${t.n}</button>`).join('');
     $('lbTrks').querySelectorAll('button').forEach(b=>b.onclick=()=>ws.send(JSON.stringify({t:'track',track:+b.dataset.t})));
     $('bStart').disabled=room.players.length<2;
+    $('bStart').textContent=room.players.length<2?'Aguardando mais jogadores...':'Iniciar corrida ('+room.players.length+')';
   }
 }
+
+// Botão copiar código
+$('bCopy').onclick=async()=>{
+  if(!room)return;
+  try{
+    await navigator.clipboard.writeText(room.code);
+    const btn=$('bCopy');
+    btn.textContent='✓ Copiado!';
+    btn.classList.add('ok');
+    setTimeout(()=>{btn.textContent='📋 Copiar';btn.classList.remove('ok');},1500);
+  }catch(e){
+    toast('Não foi possível copiar');
+  }
+};
+
 $('bStart').onclick=()=>ws.send(JSON.stringify({t:'start'}));
 $('bAgain').onclick=()=>{ $('res').style.display='none'; ws.send(JSON.stringify({t:'rematch'})); toast('Aguardando todos confirmarem…'); };
+
 function renderResults(){
   if($('res').style.display==='flex'&&!myFin)return;
   $('res').style.display='flex';
@@ -453,8 +532,8 @@ function renderResults(){
   $('resTab').innerHTML=stateOrder.map((id,i)=>{const c=map[id];if(!c)return'';
     const t=c.finT?((c.finT-raceStart)/1000).toFixed(1)+'s':'—';
     return `<tr><td>${i+1}º</td><td>${c.name}${c.id===myId?' (você)':''}</td><td>${t}</td></tr>`;}).join('');
-  $('resDica').textContent='A corrida recomeça quando todos tocarem em "Correr de novo".';
 }
+
 function hud(){
   if(phase!=='race'&&phase!=='countdown')return;
   const pos=stateOrder.indexOf(myId)+1;
@@ -483,7 +562,6 @@ function frame(now){
       const inp=rawInput();
       const sup=surfaceAt(trackIdx,pred.x,pred.y);
       stepCar(pred,inp,STEP,sup);
-      // efeito fora de pista
       if(!sup.onTrack){
         offTrackShake=Math.min(offTrackShake+STEP*6,1);
         spawnDirt(pred.x,pred.y);
